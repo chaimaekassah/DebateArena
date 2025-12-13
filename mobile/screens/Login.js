@@ -10,13 +10,15 @@ import {
   StyledTextInput, Colors, RightIcon,
   TextLink,
   TextLinkContent,
-  Shadow,
+  Shadow, Label
 } from "../components/styles";
 
 const { grey } = Colors;
 
 const Login = ({navigation}) => {
     const [hidePassword, setHidePassword] = useState(true);
+    const [showAllFieldsError, setShowAllFieldsError] = useState(false);
+
   return (
     <BackgroundContainer
       source={require("./../assets/img/fond2.png")}
@@ -32,6 +34,15 @@ const Login = ({navigation}) => {
         <Formik
           initialValues={{ email: '', password: '' }}
           onSubmit={(values) => {
+            const allFieldsFilled =
+               values.email.trim() !== '' &&
+               values.password.trim() !== '';
+
+            if (!allFieldsFilled) {
+                setShowAllFieldsError(true);
+                return;
+            }
+            setShowAllFieldsError(false);
             console.log(values);
             navigation.navigate("Dashboard");
           }}
@@ -61,6 +72,11 @@ const Login = ({navigation}) => {
                 <TextLinkContent style={{marginBottom: 60}}>Mot de passe oublié?</TextLinkContent>
               </TextLink>
               <Shadow>
+              {showAllFieldsError && (
+              <Label style={{color: "red", textAlign: "center", marginVertical: 10, marginBottom: 30}}>
+                           Tous les champs sont obligatoires
+              </Label>
+              )}
               <StyledButton onPress={handleSubmit}>
                 <ButtonText>CONNEXION</ButtonText>
               </StyledButton>
