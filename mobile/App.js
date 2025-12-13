@@ -1,9 +1,8 @@
-import { StatusBar } from 'expo-status-bar';
+import RootStack from './navigators/RootStack';
 
-import Login from './screens/Login';
 
 export default function App() {
-  return <Login/>;
+  return <RootStack/>;
 }
 
 

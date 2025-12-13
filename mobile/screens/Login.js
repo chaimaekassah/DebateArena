@@ -9,12 +9,13 @@ import {
   StyledFormArea, StyledButton, ButtonText,
   StyledTextInput, Colors, RightIcon,
   TextLink,
-  TextLinkContent, 
+  TextLinkContent,
+  Shadow,
 } from "../components/styles";
 
 const { grey } = Colors;
 
-const Login = () => {
+const Login = ({navigation}) => {
     const [hidePassword, setHidePassword] = useState(true);
   return (
     <BackgroundContainer
@@ -22,19 +23,23 @@ const Login = () => {
       resizeMode="cover"
     >
       <InnerContainer style={{marginTop:70}}>
+      
         <PageLogo
           resizeMode="contain"
-          source={require("./../assets/img/logopurple.png")}
+          source={require("./../assets/img/logo3Dfinalfinal.png")}
         />
-
+      
         <Formik
-          initialValues={{ email: "", password: "" }}
-          onSubmit={(values) => console.log(values)}
+          initialValues={{ email: '', password: '' }}
+          onSubmit={(values) => {
+            console.log(values);
+            navigation.navigate("Dashboard");
+          }}
         >
           {({ handleChange, handleBlur, handleSubmit, values }) => (
             <StyledFormArea>
               <MyTextInput
-                placeholder="exemple@exemple.com"
+                placeholder="votreemail@exemple.com"
                 placeholderTextColor={grey}
                 onChangeText={handleChange("email")}
                 onBlur={handleBlur("email")}
@@ -55,10 +60,12 @@ const Login = () => {
               <TextLink>
                 <TextLinkContent style={{marginBottom: 60}}>Mot de passe oublié?</TextLinkContent>
               </TextLink>
+              <Shadow>
               <StyledButton onPress={handleSubmit}>
                 <ButtonText>CONNEXION</ButtonText>
               </StyledButton>
-              <TextLink>
+              </Shadow>
+              <TextLink onPress={() => navigation.navigate("SignUp")}> 
                 <TextLinkContent>Je m'inscris</TextLinkContent>
               </TextLink>
             </StyledFormArea>
@@ -71,14 +78,18 @@ const Login = () => {
 
 const MyTextInput = ({icon, isPassword,hidePassword, setHidePassword, ...props }) => {
   return (
+    
     <View>
+     <Shadow>
       <StyledTextInput {...props} />
       {isPassword && (
         <RightIcon onPress={() => setHidePassword(!hidePassword)}>
             <Ionicons name={hidePassword ? 'eye-off' : 'eye'} size={30} color={grey}/>
         </RightIcon>
       )}
+      </Shadow>
     </View>
+    
   );
 };
 

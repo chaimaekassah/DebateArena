@@ -1,6 +1,7 @@
 import styled from 'styled-components/native';
 import { View, Text, Image, ImageBackground, TextInput, TouchableOpacity } from 'react-native';
 import Constants from 'expo-constants';
+import { Platform } from "react-native";
 
 const StatusBarHeight = Constants.statusBarHeight;
 
@@ -17,13 +18,6 @@ export const Colors = {
 
 const { dark, yellow, blue, lightPink, pink, white } = Colors;
 
-export const StyledContainer = styled.View`
-  flex: 1;
-  padding: 25px;
-  background-color: ${dark};
-  padding-top: ${StatusBarHeight + 10}px;
-`;
-
 export const InnerContainer = styled.View`
   flex: 1;
   width: 100%;
@@ -33,14 +27,6 @@ export const InnerContainer = styled.View`
 export const PageLogo = styled.Image`
   width: 300;
   height: 140px;
-  shadow-color: #000;
-  shadow-offset: {
-    width: 10;
-    height: 10;
-  };
-  shadow-opacity: 0.75 ;
-  shadow-radius: 0.75px;
-  elevation: 6;
 `;
  
 export const TextLink = styled.TouchableOpacity`
@@ -51,6 +37,12 @@ export const TextLink = styled.TouchableOpacity`
 export const TextLinkContent = styled.Text`
  font-size: 12px;
  color: ${white};
+`;
+
+export const Label = styled.Text`
+ font-size: 12px;
+ color: ${white};
+ text-align: center;
 `;
 
 
@@ -75,14 +67,23 @@ export const StyledTextInput = styled.TextInput`
   height: 60px;
   margin-vertical: 3px;
   margin-bottom: 10px;
-  shadow-color: #000;
-  shadow-offset: {
-    width: 0;
-    height: 5;
-  };
-  shadow-opacity: 0.75 ;
-  shadow-radius: 4.65px;
-  elevation: 6;
+`;
+
+export const Shadow = styled.View`
+  border-radius: 38px;
+  margin-bottom: 10px;
+
+  ${Platform.OS === "ios" &&
+  `
+    shadow-color: #000;
+    shadow-opacity: 0.75;
+    shadow-radius: 4.65px;
+    shadow-offset: 0px 5px;
+  `}
+  ${Platform.OS === "android" &&
+  `
+    elevation: 8;
+  `}
 `;
 
 export const LeftIcon = styled.View`
@@ -109,14 +110,6 @@ export const StyledButton = styled.TouchableOpacity`
   align-items: center;
   margin-vertical: 3px;
   margin-bottom: 10px;
-  shadow-color: #000;
-  shadow-offset: {
-    width: 0;
-    height: 5;
-  };
-  shadow-opacity: 0.75 ;
-  shadow-radius: 4.65px;
-  elevation: 6;
 `;
 
 export const ButtonText = styled.Text`
