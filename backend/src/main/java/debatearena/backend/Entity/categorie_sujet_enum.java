@@ -1,9 +1,6 @@
 package debatearena.backend.Entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-
-public enum CategorieSujet {
+public enum categorie_sujet_enum {
     ART,
     POLITIQUE,
     CULTURE,

@@ -31,7 +31,7 @@ public class Utilisateur {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    private Role role = Role.UTILISATEUR;
+    private role_enum role = role_enum.UTILISATEUR;
 
     @Column(nullable = false)
     private Integer score = 0;

@@ -1,6 +1,6 @@
 package debatearena.backend.Entity;
 
-public enum Role {
+public enum role_enum {
     UTILISATEUR,
     ADMIN
 }

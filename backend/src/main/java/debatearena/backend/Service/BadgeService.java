@@ -1,7 +1,7 @@
 package debatearena.backend.Service;
 
 import debatearena.backend.Entity.Badge;
-import debatearena.backend.Entity.CategorieBadge;
+import debatearena.backend.Entity.categorie_badge_enum;
 import debatearena.backend.Repository.BadgeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ public class BadgeService {
         Badge defaultbadge = new Badge();
         defaultbadge.setNom("Nouveau Débatteur");
         defaultbadge.setDescription("Badge attribué aux nouveaux utilisateurs");
-        defaultbadge.setCategorie(CategorieBadge.BRONZE);
+        defaultbadge.setCategorie(categorie_badge_enum.BRONZE);
         return badgeRepository.save(defaultbadge);
     }
 }

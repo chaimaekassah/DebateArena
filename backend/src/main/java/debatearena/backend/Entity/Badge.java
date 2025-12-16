@@ -25,5 +25,5 @@ public class Badge {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    private CategorieBadge categorie;
+    private categorie_badge_enum categorie;
 }

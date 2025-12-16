@@ -22,10 +22,10 @@ public class Sujet {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    private Niveau difficulte;
+    private niveau_enum difficulte;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    private CategorieSujet categorie;
+    private categorie_sujet_enum categorie;
 }

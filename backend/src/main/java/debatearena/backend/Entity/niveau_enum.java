@@ -1,6 +1,6 @@
 package debatearena.backend.Entity;
 
-public enum Niveau {
+public enum niveau_enum {
     DEBUTANT,
     INTERMEDIARE,
     AVANCE,

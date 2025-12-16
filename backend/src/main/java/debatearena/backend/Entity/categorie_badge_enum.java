@@ -1,6 +1,6 @@
 package debatearena.backend.Entity;
 
-public enum CategorieBadge {
+public enum categorie_badge_enum {
     OR,
     ARGENT,
     BRONZE
