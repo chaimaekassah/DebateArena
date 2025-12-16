@@ -1,8 +1,13 @@
 import React, {useState} from "react";
 import { Formik } from "formik";
 import { View } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import api from '../services/api'; 
 
 import { Ionicons } from "@expo/vector-icons";
+
+//keyboard avoiding view
+import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
 
 import {
   InnerContainer, PageLogo, BackgroundContainer,
@@ -18,8 +23,29 @@ const { grey } = Colors;
 const Login = ({navigation}) => {
     const [hidePassword, setHidePassword] = useState(true);
     const [showAllFieldsError, setShowAllFieldsError] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    
+    const handleLogin = async (credentials) => {
+      setIsLoading(true);
+      try {
+        const response = await api.post('/auth/signin', credentials);
+        const {token, role} = response.data;
+
+        //stocker
+        await AsyncStorage.setItem('userToken', token);
+        await AsyncStorage.setItem('userRole', role);
+
+        console.log("Connexion réussie, token stocké");
+        navigation.navigate("Dashboard");
+      }catch (error){
+        console.log("Erreur: ", error.response?.data || error.message);
+      }finally{
+        setIsLoading(false);
+      }
+    }
 
   return (
+    <KeyboardAvoidingWrapper>
     <BackgroundContainer
       source={require("./../assets/img/fond2.png")}
       resizeMode="cover"
@@ -43,8 +69,8 @@ const Login = ({navigation}) => {
                 return;
             }
             setShowAllFieldsError(false);
+            handleLogin(values);
             console.log(values);
-            navigation.navigate("Dashboard");
           }}
         >
           {({ handleChange, handleBlur, handleSubmit, values }) => (
@@ -77,8 +103,8 @@ const Login = ({navigation}) => {
                            Tous les champs sont obligatoires
               </Label>
               )}
-              <StyledButton onPress={handleSubmit}>
-                <ButtonText>CONNEXION</ButtonText>
+              <StyledButton onPress={handleSubmit} disabled={isLoading}>
+                 <ButtonText>{isLoading ? "Connexion..." : "CONNEXION"}</ButtonText>
               </StyledButton>
               </Shadow>
               <TextLink onPress={() => navigation.navigate("SignUp")}> 
@@ -89,6 +115,7 @@ const Login = ({navigation}) => {
         </Formik>
       </InnerContainer>
     </BackgroundContainer>
+    </KeyboardAvoidingWrapper>
   );
 };
 

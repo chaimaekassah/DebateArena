@@ -25,7 +25,7 @@ export const InnerContainer = styled.View`
 `;
 
 export const PageLogo = styled.Image`
-  width: 300;
+  width: 300px;
   height: 140px;
 `;
  
@@ -112,11 +112,78 @@ export const StyledButton = styled.TouchableOpacity`
   margin-bottom: 10px;
 `;
 
+export const WhiteButton = styled.TouchableOpacity`
+  background-color: ${white};
+  width: 250px;
+  justify-content: center;
+  padding-left: 55px;
+  padding-right: 55px;
+  border-radius: 38px;
+  height: 60px;
+  align-items: center;
+  margin-vertical: 3px;
+  margin-bottom: 10px;
+  ${Platform.OS === "ios" &&
+  `
+    shadow-color: #000;
+    shadow-opacity: 0.75;
+    shadow-radius: 4.65px;
+    shadow-offset: 0px 5px;
+  `}
+  ${Platform.OS === "android" &&
+  `
+    elevation: 8;
+  `}
+`;
+
 export const ButtonText = styled.Text`
  color: ${dark};
  font-size: 20px;
  font-weight: bold;
 `;
+
+//Debate
+export const Choice= styled.TouchableOpacity`
+  justify-content: center;
+  border-radius: 38px;
+  height: 166px;
+  width: 274px;
+  align-items: center;
+  margin-vertical: 3px;
+  margin-bottom: 10px;
+  backgroundColor: ${lightPink};
+  opacity: 0.5;
+  elevation: 15;
+  ${Platform.OS === "ios" &&
+  `
+    shadow-color: #000;
+    shadow-opacity: 0.75;
+    shadow-radius: 4.65px;
+    shadow-offset: 0px 5px;
+  `}
+  ${Platform.OS === "android" &&
+  `
+    elevation: 8;
+  `}
+`;
+
+export const SubjectContainer = styled.View`
+ justify-content: center;
+  border-radius: 38px;
+  height: 250px;
+  width: 300px;
+  align-items: center;
+  margin-vertical: 3px;
+  margin-bottom: 10px;
+  backgroundColor: ${white};
+  opacity: 0.5;
+  elevation: 15;
+`
+
+export const ImageContainer = styled.Image`
+  width: 100px;
+  height: 100px;
+`
 
 
  

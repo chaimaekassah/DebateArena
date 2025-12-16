@@ -3,6 +3,11 @@ import { Formik } from "formik";
 import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ScrollView } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import api from '../services/api'; 
+
+import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
 
 import {
   InnerContainer, PageLogo, BackgroundContainer,
@@ -18,9 +23,34 @@ const { grey } = Colors;
 const SignUp = ({navigation}) => {
     const [hidePassword, setHidePassword] = useState(true);
     const [showAllFieldsError, setShowAllFieldsError] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSignUp = async (credentials) => {
+      setIsLoading(true);
+      try {
+        const response = await api.post('/auth/signup', credentials);
+        const {id, nom, prenom, email, score, badgeNom, badgeCategorie} = response.data;
+
+        //stocker
+        await AsyncStorage.setItem('id', id.toString());
+        await AsyncStorage.setItem('nom', nom);
+        await AsyncStorage.setItem('prenom', prenom);
+        await AsyncStorage.setItem('email', email);
+        await AsyncStorage.setItem('score', score.toString());
+        await AsyncStorage.setItem('badgeNom', badgeNom);
+        await AsyncStorage.setItem('badgeCategorie', badgeCategorie);
+
+        console.log("Inscription réussie, utilisateur enregistré");
+        navigation.navigate("Login");
+      }catch (error){
+        console.log("Erreur: ", error.response?.data || error.message);
+      }finally{
+        setIsLoading(false);
+      }
+    }
 
   return (
-   
+   <KeyboardAvoidingWrapper>
     <BackgroundContainer
       source={require("./../assets/img/fond2.png")}
       resizeMode="cover"
@@ -55,7 +85,10 @@ const SignUp = ({navigation}) => {
 
             setShowAllFieldsError(false);
             console.log(values);
-            navigation.navigate("Login");
+
+            const { confirmPassword, ...filteredData } = values;
+            handleSignUp(filteredData);
+
           }}
 
         >
@@ -119,14 +152,13 @@ const SignUp = ({navigation}) => {
              </Label>
       )}
               <Shadow>
-              <StyledButton onPress={handleSubmit}>
-                <ButtonText>INSCRIPTION</ButtonText>
+              <StyledButton onPress={handleSubmit} disabled={isLoading}>
+                <ButtonText>{isLoading ? "Inscription..." : "INSCRIPTION"}</ButtonText>
               </StyledButton>
               </Shadow>
 
               <TextLink onPress={() => navigation.navigate("Login")}>
                 <TextLinkContent style={{marginBottom: 60}}
-                                 onPress={() => navigation.navigate("Login")}
                 >
                     Déjà inscrit-e ?
                 </TextLinkContent>
@@ -138,6 +170,7 @@ const SignUp = ({navigation}) => {
       </InnerContainer>
       </ScrollView>
     </BackgroundContainer>
+    </KeyboardAvoidingWrapper>
   );
 };
 
