@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/*").hasRole("ADMIN")
-                       // &a.anyRequest().authenticated()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtFilter(customUtilisateurService, jwtUtil), org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
