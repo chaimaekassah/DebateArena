@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import { Formik } from "formik";
-import { View } from "react-native";
+import { View, ScrollView } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import api from '../services/api'; 
 
@@ -50,6 +50,7 @@ const Login = ({navigation}) => {
       source={require("./../assets/img/fond2.png")}
       resizeMode="cover"
     >
+      <ScrollView>
       <InnerContainer style={{marginTop:70}}>
       
         <PageLogo
@@ -114,6 +115,7 @@ const Login = ({navigation}) => {
           )}
         </Formik>
       </InnerContainer>
+      </ScrollView>
     </BackgroundContainer>
     </KeyboardAvoidingWrapper>
   );

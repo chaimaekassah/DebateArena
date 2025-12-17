@@ -7,7 +7,7 @@ import Login from './../screens/Login';
 import Dashboard from './../screens/Dashboard';
 import SignUp from './../screens/signup';
 
-import { Colors } from './../components/styles';
+
 
 const Stack = createNativeStackNavigator();
 

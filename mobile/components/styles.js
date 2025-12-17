@@ -168,7 +168,7 @@ export const Choice= styled.TouchableOpacity`
 `;
 
 export const SubjectContainer = styled.View`
- justify-content: center;
+  justify-content: center;
   border-radius: 38px;
   height: 250px;
   width: 300px;
@@ -180,10 +180,40 @@ export const SubjectContainer = styled.View`
   elevation: 15;
 `
 
-export const ImageContainer = styled.Image`
-  width: 100px;
-  height: 100px;
+export const Quote = styled.Image`
+  width: 80px;
+  height: 80px;
+  position: absolute;
+  zIndex: 10; 
 `
+
+export const TextBubble = styled.Text`
+ color: ${dark};
+ font-size: 14px;
+ font-weight: bold;
+ background-color: ${white};
+ maxWidth: 290px;
+ border-radius: 38px;
+ text-align: center;
+ min-height: 50px; 
+ justifyContent: center;
+ paddingHorizontal: 20px;
+ paddingVertical: 14px;
+  ${Platform.OS === "ios" &&
+  `
+    shadow-color: #000;
+    shadow-opacity: 0.75;
+    shadow-radius: 4.65px;
+    shadow-offset: 0px 5px;
+  `}
+  ${Platform.OS === "android" &&
+  `
+    elevation: 8;
+  `}
+`
+
+
+
 
 
  
