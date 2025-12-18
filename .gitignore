@@ -21,6 +21,7 @@ __pycache__/
 venv/
 dist/
 build/
+.pytest_cache/
 
 # FRONTEND (React Native)
 node_modules/
