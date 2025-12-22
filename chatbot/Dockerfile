@@ -15,4 +15,4 @@ COPY . .
 ENV GOOGLE_API_KEY=""
 
 # Lancer l'API
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5005"]
+CMD ["uvicorn", "chatbot.app:app", "--host", "0.0.0.0", "--port", "5005"]
