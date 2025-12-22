@@ -5,7 +5,7 @@ import os
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from chatbot.chatbot_service import ChatbotService
+from chatbot_service import ChatbotService
 
 app = FastAPI(title="DebatArena Chatbot API", version="1.0.0")
 
