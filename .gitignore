@@ -21,6 +21,8 @@ __pycache__/
 venv/
 dist/
 build/
+.env
+.env.example
 
 # FRONTEND (React Native)
 node_modules/
