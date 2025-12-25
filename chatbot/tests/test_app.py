@@ -7,12 +7,16 @@ from chatbot.app import app, get_chatbot_service
 # ---------------------------
 mock_service = MagicMock()
 
-mock_service.generate_response.side_effect = lambda message, session_id=None: {
-    "text": f"Réponse simulée: {message}"
-    if "fin du débat" not in message.lower()
-    else "Score final: 85/100",
-    "session_id": session_id or "session123"
-}
+mock_service.generate_response.side_effect = (
+    lambda message, mode="train", session_id=None: {
+        "text": (
+            f"Réponse simulée: {message}"
+            if "fin du débat" not in message.lower()
+            else "Score final: 85/100"
+        ),
+        "session_id": session_id or "session123"
+    }
+)
 
 mock_service.clear_session.return_value = None
 

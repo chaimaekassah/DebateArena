@@ -46,7 +46,12 @@ class ChatResponse(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message": "DebatArena API is running"}
+    return {"status": "running"}
+
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -66,6 +71,6 @@ async def chat(request: ChatRequest, chatbot: ChatbotService = Depends(get_chatb
 async def clear_session(session_id: str, chatbot: ChatbotService = Depends(get_chatbot_service)):
     try:
         chatbot.clear_session(session_id)
-        return {"message": f"Session {session_id} cleared successfully"}
+        return {"message": "Session cleared"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
