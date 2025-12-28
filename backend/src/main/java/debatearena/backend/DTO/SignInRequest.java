@@ -1,28 +1,38 @@
 package debatearena.backend.DTO;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
-@Data
-//@AllArgsConstructor
-//@NoArgsConstructor
+@Schema(description = "Requête de connexion utilisateur")
 public class SignInRequest {
+
+    @Schema(
+            description = "Adresse email de l'utilisateur",
+            example = "jean.dupont@example.com",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    @NotBlank(message = "L'email est obligatoire")
+    @Email(message = "Email invalide")
     private String email;
+
+    @Schema(
+            description = "Mot de passe de l'utilisateur",
+            example = "MotDePasse123",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    @NotBlank(message = "Le mot de passe est obligatoire")
     private String password;
 
-
-    // ✔️ Constructeur vide (OBLIGATOIRE pour Spring / Jackson)
     public SignInRequest() {
     }
 
-    // ✔️ Constructeur avec paramètres (utile pour les tests)
     public SignInRequest(String email, String password) {
         this.email = email;
         this.password = password;
     }
 
-    // ✔️ Getters et Setters
+    // Getters et Setters
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
