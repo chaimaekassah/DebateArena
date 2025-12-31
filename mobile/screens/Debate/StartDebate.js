@@ -18,7 +18,7 @@ const StartDebate = () => {
       source={require("../../assets/img/fond.png")}
       resizeMode="cover"
     >
-      <InnerContainer style={{marginTop:70}}>
+      <InnerContainer style={{marginTop:70,justifyContent: "center", alignItems: "center"}}>
         <Label style={{fontSize: 20, marginBottom: 50}}>Vous avez choisi : ... </Label>
     <Shadow>
     <StyledButton>

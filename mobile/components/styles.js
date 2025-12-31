@@ -2,8 +2,10 @@ import styled from 'styled-components/native';
 import { View, Text, Image, ImageBackground, TextInput, TouchableOpacity } from 'react-native';
 import Constants from 'expo-constants';
 import { Platform } from "react-native";
+import { Dimensions } from "react-native";
 
 const StatusBarHeight = Constants.statusBarHeight;
+const { height } = Dimensions.get("window");
 
 // Colors
 export const Colors = {
@@ -95,7 +97,7 @@ export const LeftIcon = styled.View`
 
 export const RightIcon = styled.TouchableOpacity`
    right: 10px;
-   top: 15px;
+   top: 10px;
    position: absolute;
    z-index: 1;
 `;
@@ -211,6 +213,24 @@ export const TextBubble = styled.Text`
     elevation: 8;
   `}
 `
+export const WhiteContainer = styled.View`
+  position: absolute;
+  bottom: 0;
+  height: ${height * 0.6}px;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  border-top-left-radius: 38px;
+  border-top-right-radius: 38px;
+  background-color: ${white};
+  elevation: 15;
+`
+
+export const ProfileImage = styled.Image`
+  width: 300px;
+  height: 140px;
+  radius: 60px;
+`;
 
 
 

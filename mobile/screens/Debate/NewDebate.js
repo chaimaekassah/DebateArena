@@ -12,7 +12,8 @@ import {
 
 const {blue, dark} = Colors;
 
-const NewDebate = () => {
+const NewDebate = ({ navigation }) => {
+
   return (
     <BackgroundContainer
       source={require("../../assets/img/fond.png")}
@@ -25,10 +26,10 @@ const NewDebate = () => {
           source={require("../../assets/img/logoCoupe.png")}
         />
         <Label style={{fontSize: 32, marginBottom: 30, color: dark}}>Commencer un débat ?</Label>
-        <Choice style={{backgroundColor: blue}}>
+        <Choice onPress={() => navigation.navigate("Categories")}>
             <Label style={{fontSize: 16}}>Entraînement</Label>
         </Choice>
-        <Choice>
+        <Choice style={{backgroundColor: blue}} onPress={() => navigation.navigate("Categories")} >
             <Label style={{fontSize: 16}}>Test</Label>
         </Choice>
       

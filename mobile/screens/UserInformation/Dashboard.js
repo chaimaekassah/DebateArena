@@ -1,4 +1,4 @@
-import { Label } from "../components/styles"
+import { Label } from "../../components/styles"
 import { View } from "react-native";
 
 const Dashboard = () => {
