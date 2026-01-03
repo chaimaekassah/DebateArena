@@ -5,9 +5,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { ScrollView } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import api from '../services/api'; 
+import api from '../../services/api'; 
 
-import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
+import KeyboardAvoidingWrapper from "../../components/common/KeyboardAvoidingWrapper";
 
 import {
   InnerContainer, PageLogo, BackgroundContainer,
@@ -16,7 +16,7 @@ import {
   TextLink,
   TextLinkContent,
   Shadow, Label
-} from "../components/styles";
+} from "../../components/styles";
 
 const { grey } = Colors;
 
@@ -29,7 +29,7 @@ const SignUp = ({navigation}) => {
       setIsLoading(true);
       try {
         const response = await api.post('/auth/signup', credentials);
-        const {id, nom, prenom, email, score, badgeNom, badgeCategorie} = response.data;
+        const {id, nom, prenom, email, score, badgeNom, badgeCategorie, imageUrl} = response.data;
 
         //stocker
         await AsyncStorage.setItem('id', id.toString());
@@ -39,6 +39,7 @@ const SignUp = ({navigation}) => {
         await AsyncStorage.setItem('score', score.toString());
         await AsyncStorage.setItem('badgeNom', badgeNom);
         await AsyncStorage.setItem('badgeCategorie', badgeCategorie);
+        await AsyncStorage.setItem('imageUrl', imageUrl)
 
         console.log("Inscription réussie, utilisateur enregistré");
         navigation.navigate("Login");
@@ -52,7 +53,7 @@ const SignUp = ({navigation}) => {
   return (
    <KeyboardAvoidingWrapper>
     <BackgroundContainer
-      source={require("./../assets/img/fond2.png")}
+      source={require("../../assets/img/fond2.png")}
       resizeMode="cover"
     >
     <ScrollView>
@@ -60,7 +61,7 @@ const SignUp = ({navigation}) => {
 
         <PageLogo
           resizeMode="contain"
-          source={require("./../assets/img/logo3Dfinalfinal.png")}
+          source={require("../../assets/img/logo3Dfinalfinal.png")}
         />
     
         <Formik

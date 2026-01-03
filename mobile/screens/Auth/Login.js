@@ -2,12 +2,12 @@ import React, {useState} from "react";
 import { Formik } from "formik";
 import { View, ScrollView } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
-import api from '../services/api'; 
+import api from '../../services/api'; 
 
 import { Ionicons } from "@expo/vector-icons";
 
 //keyboard avoiding view
-import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
+import KeyboardAvoidingWrapper from "../../components/common/KeyboardAvoidingWrapper";
 
 import {
   InnerContainer, PageLogo, BackgroundContainer,
@@ -16,7 +16,7 @@ import {
   TextLink,
   TextLinkContent,
   Shadow, Label
-} from "../components/styles";
+} from "../../components/styles";
 
 const { grey } = Colors;
 
@@ -47,7 +47,7 @@ const Login = ({navigation}) => {
   return (
     <KeyboardAvoidingWrapper>
     <BackgroundContainer
-      source={require("./../assets/img/fond2.png")}
+      source={require("../../assets/img/fond2.png")}
       resizeMode="cover"
     >
       <ScrollView>
@@ -55,7 +55,7 @@ const Login = ({navigation}) => {
       
         <PageLogo
           resizeMode="contain"
-          source={require("./../assets/img/logo3Dfinalfinal.png")}
+          source={require("../../assets/img/logo3Dfinalfinal.png")}
         />
       
         <Formik

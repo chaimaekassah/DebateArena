@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ScrollView, TextInput, View, Image, KeyboardAvoidingView, Platform } from "react-native";
-import LoadingDots from "../../components/LoadingDots";
+import LoadingDots from "../../components/debate/LoadingDots";
 import { Ionicons } from "@expo/vector-icons";
 
 import {
@@ -131,7 +131,7 @@ const Chat = () => {
             value={input}
             onChangeText={setInput}
             placeholder="Tapez ici"
-            style={{flex: 1}}
+            style={{flex: 1, backgroundColor: white, height: 40}}
           />
           <RightIcon onPress={sendMessage}>
              <Ionicons name="send" size={28} />
