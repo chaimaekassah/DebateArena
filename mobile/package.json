@@ -12,44 +12,42 @@
   },
   "jest": {
     "preset": "jest-expo",
-    "testEnvironment": "node",
-    "setupFiles": [
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-native/extend-expect",
       "<rootDir>/jest.setup.js"
     ],
-    "setupFilesAfterEnv": [
-      "@testing-library/jest-native/extend-expect"
-    ],
-    "moduleNameMapper": {
-      "^expo/winter(.*)$": "<rootDir>/__mocks__/expo/winter.js"
-    },
     "transformIgnorePatterns": [
-      "node_modules/(?!(jest-)?react-native|@react-native|@react-navigation|expo|@expo|expo-modules-core)"
+      "node_modules/(?!(jest-)?react-native|@react-native|@expo|expo|@expo/vector-icons)"
     ]
   },
   "dependencies": {
+    "@babel/plugin-transform-class-properties": "^7.28.6",
+    "@babel/plugin-transform-private-methods": "^7.28.6",
+    "@babel/plugin-transform-private-property-in-object": "^7.28.6",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-navigation/native": "^7.1.25",
     "@react-navigation/native-stack": "^7.8.6",
     "@react-navigation/stack": "^7.6.12",
     "axios": "^1.13.2",
-    "expo": "~54.0.29",
-    "expo-constants": "^18.0.12",
-    "expo-status-bar": "~3.0.9",
+    "expo": "~51.0.0",
+    "expo-constants": "~16.0.2",
+    "expo-status-bar": "~1.12.1",
     "formik": "^2.4.9",
-    "jest-expo": "^54.0.16",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-gesture-handler": "^2.29.1",
+    "react": "18.2.0",
+    "react-native": "0.74.5",
+    "react-native-gesture-handler": "^2.12.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
-    "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0",
+    "react-native-reanimated": "~3.6.0",
+    "react-native-safe-area-context": "4.10.1",
+    "react-native-screens": "~3.29.0",
     "styled-components": "^6.1.19"
   },
   "devDependencies": {
     "@testing-library/jest-native": "^5.4.3",
-    "@testing-library/react-native": "^13.3.3",
-    "jest": "^30.2.0",
-    "react-test-renderer": "19.1.0",
-    "babel-preset-expo": "^9.2.2"
+    "@testing-library/react-native": "^12.4.2",
+    "babel-preset-expo": "^9.2.2",
+    "jest": "^29.7.0",
+    "jest-expo": "^51.0.0",
+    "react-test-renderer": "18.2.0"
   }
 }

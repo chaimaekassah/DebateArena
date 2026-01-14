@@ -1,5 +1,5 @@
-import React from "react";
-import { ScrollView } from "react-native";
+import React from 'react';
+import { ScrollView } from 'react-native';
 
 import {
   BackgroundContainer,
@@ -7,15 +7,15 @@ import {
   WhiteButton,
   ButtonText,
   Colors,
-  Label
-} from "../../components/styles";
+  Label,
+} from '../../components/styles';
 
 const { dark } = Colors;
 
 const Categories = () => {
   return (
     <BackgroundContainer
-      source={require("../../assets/img/fond.png")}
+      source={require('../../assets/img/fond.png')}
       resizeMode="cover"
       style={{ flex: 1 }}
     >
@@ -26,16 +26,16 @@ const Categories = () => {
           </Label>
 
           {[
-            "Art",
-            "Politique",
-            "Culture",
-            "Informatique",
-            "Tendance",
-            "Industrie",
-            "Philosophie",
-            "Santé",
-            "Histoire",
-            "Musique"
+            'Art',
+            'Politique',
+            'Culture',
+            'Informatique',
+            'Tendance',
+            'Industrie',
+            'Philosophie',
+            'Santé',
+            'Histoire',
+            'Musique',
           ].map((cat) => (
             <WhiteButton key={cat}>
               <ButtonText>{cat}</ButtonText>
