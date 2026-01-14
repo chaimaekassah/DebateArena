@@ -28,8 +28,6 @@ jobs:
         uses: actions/setup-node@v6.1.0
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: mobile/package-lock.json
 
       - name: Install React Native dependencies
         working-directory: mobile
