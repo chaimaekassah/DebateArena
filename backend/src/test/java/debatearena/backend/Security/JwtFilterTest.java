@@ -40,10 +40,19 @@ class JwtFilterTest {
         MockitoAnnotations.openMocks(this);
         jwtFilter = new JwtFilter(customUtilisateurService, jwtUtil);
         SecurityContextHolder.clearContext();
+
+        // --- CORRECTION ICI ---
+        // On simule un chemin d'URL pour éviter le NullPointerException.
+        // On met une URL neutre qui doit être filtrée (pas /auth/signin par exemple).
+        when(request.getServletPath()).thenReturn("/api/test");
+        // Par sécurité, si votre filtre utilise getRequestURI au lieu de getServletPath :
+        when(request.getRequestURI()).thenReturn("/api/test");
     }
 
     @Test
     void shouldDoNothing_WhenNoAuthorizationHeader() throws Exception {
+        // Le mock de request renvoie déjà null pour getHeader() par défaut,
+        // mais c'est bien de l'expliciter.
         when(request.getHeader("Authorization")).thenReturn(null);
 
         jwtFilter.doFilter(request, response, filterChain);
