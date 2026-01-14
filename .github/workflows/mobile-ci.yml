@@ -29,23 +29,26 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Enable Corepack (Yarn)
+        run: corepack enable
+
       - name: Install React Native dependencies
         working-directory: mobile
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       - name: Lint React Native code
         working-directory: mobile
-        run: npm run lint
+        run: yarn lint
         continue-on-error: true
 
       - name: Run React Native tests
         working-directory: mobile
-        run: npm test -- --watchAll=false
+        run: yarn test --watchAll=false
         continue-on-error: true
 
       - name: Type check (if using TypeScript)
         working-directory: mobile
-        run: npm run tsc --noEmit
+        run: yarn tsc --noEmit
         continue-on-error: true
 
       - name: Make gradlew executable
