@@ -1,4 +1,4 @@
-import api from "./api";
+import api from './api';
 
 export const sendMessageToAI = async (message) => {
   // MOCK TEMPORAIRE
@@ -6,7 +6,7 @@ export const sendMessageToAI = async (message) => {
     setTimeout(() => {
       resolve({
         data: {
-          reply: "🤖 Réponse simulée de l’IA (Axios)",
+          reply: '🤖 Réponse simulée de l’IA (Axios)',
         },
       });
     }, 1200);
