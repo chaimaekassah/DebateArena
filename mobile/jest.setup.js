@@ -55,3 +55,11 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
     KeyboardAwareScrollView: ScrollView,
   };
 });
+
+//✅ Silence act() warnings
+jest.spyOn(console, 'error').mockImplementation((message) => {
+  if (message.includes('act(...)') || message.includes('Animated')) {
+    return;
+  }
+  console.warn(message);
+});
