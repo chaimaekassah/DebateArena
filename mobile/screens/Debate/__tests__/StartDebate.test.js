@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import StartDebate from '../../Debate/StartDebate';
+import StartDebate from '../StartDebate';
 
 describe('StartDebate Screen', () => {
   it('affiche le bouton commencer', () => {

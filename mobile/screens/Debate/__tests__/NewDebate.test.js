@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import NewDebate from '../../Debate/NewDebate';
+import NewDebate from '../NewDebate';
 
 describe('NewDebate Screen', () => {
   it('affiche les options de débat', () => {

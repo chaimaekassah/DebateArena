@@ -5,9 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import api from '../services/api';
+import api from '../../services/api';
 
-import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper';
+import KeyboardAvoidingWrapper from '../../components/common/KeyboardAvoidingWrapper';
 
 import {
   InnerContainer,
@@ -23,7 +23,7 @@ import {
   TextLinkContent,
   Shadow,
   Label,
-} from '../components/styles';
+} from '../../components/styles';
 
 const { grey } = Colors;
 
@@ -60,14 +60,14 @@ const SignUp = ({ navigation }) => {
   return (
     <KeyboardAvoidingWrapper>
       <BackgroundContainer
-        source={require('./../assets/img/fond2.png')}
+        source={require('../../assets/img/fond2.png')}
         resizeMode="cover"
       >
         <ScrollView>
           <InnerContainer style={{ marginTop: 70 }}>
             <PageLogo
               resizeMode="contain"
-              source={require('./../assets/img/logo3Dfinalfinal.png')}
+              source={require('../../assets/img/logo3Dfinalfinal.png')}
             />
 
             <Formik

@@ -1,20 +1,23 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import Chat from '../../Debate/Chat';
+import Chat from '../Chat';
 
 jest.useFakeTimers();
 
-describe('Chat Screen - Integration', () => {
-  it('envoie un message et affiche la réponse IA', async () => {
-    const { getByPlaceholderText, getByTestId, getByText } = render(<Chat />);
+// test for Chat screen
 
-    fireEvent.changeText(getByPlaceholderText('Tapez ici'), 'Bonjour');
+describe('Chat Screen', () => {
+  it("permet d'envoyer un message et affiche la réponse IA", async () => {
+    const { getByPlaceholderText, getByText, getByTestId } = render(<Chat />);
 
+    const input = getByPlaceholderText('Tapez ici');
+
+    fireEvent.changeText(input, 'Bonjour');
     fireEvent.press(getByTestId('send-button'));
 
     expect(getByText('Bonjour')).toBeTruthy();
 
-    // Avancer le timer (réponse IA simulée)
+    // Avancer le timer de l’IA
     jest.advanceTimersByTime(1200);
 
     await waitFor(() => {

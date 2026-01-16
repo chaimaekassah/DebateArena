@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import React, { useState, useRef, useEffect } from "react";
-import { ScrollView, TextInput, View, Image, KeyboardAvoidingView, Platform } from "react-native";
-import LoadingDots from "../../components/debate/LoadingDots";
-import { Ionicons } from "@expo/vector-icons";
-=======
 import React, { useState, useRef, useEffect } from 'react';
 import {
   ScrollView,
@@ -13,9 +7,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import LoadingDots from '../../components/LoadingDots';
+import LoadingDots from '../../components/debate/LoadingDots';
 import { Ionicons } from '@expo/vector-icons';
->>>>>>> origin/feature/tests-screens
 
 import {
   BackgroundContainer,
@@ -181,11 +174,7 @@ const Chat = () => {
             value={input}
             onChangeText={setInput}
             placeholder="Tapez ici"
-<<<<<<< HEAD
-            style={{flex: 1, backgroundColor: white, height: 40}}
-=======
-            style={{ flex: 1 }}
->>>>>>> origin/feature/tests-screens
+            style={{ flex: 1, backgroundColor: white, height: 40 }}
           />
           <RightIcon onPress={sendMessage} testID="send-button">
             <Ionicons name="send" size={28} />

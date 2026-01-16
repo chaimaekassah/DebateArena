@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import Login from '../Login';
-import api from '../../services/api';
+import api from '../../../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 jest.mock('../../services/api');

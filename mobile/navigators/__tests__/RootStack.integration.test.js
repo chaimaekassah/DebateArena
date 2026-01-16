@@ -32,7 +32,7 @@ jest.mock('@react-navigation/native-stack', () => {
    MOCK DES ÉCRANS
    ========================= */
 
-jest.mock('../../screens/Login', () => {
+jest.mock('../../screens/Auth/Login', () => {
   const React = require('react');
   const { Text, Button } = require('react-native');
 
@@ -50,14 +50,14 @@ jest.mock('../../screens/Login', () => {
   );
 });
 
-jest.mock('../../screens/signup', () => {
+jest.mock('../../screens/Auth/signup', () => {
   const React = require('react');
   const { Text } = require('react-native');
 
   return () => <Text testID="signup-screen">SignUp Screen</Text>;
 });
 
-jest.mock('../../screens/Dashboard', () => {
+jest.mock('../../screens/UserInformation/Dashboard', () => {
   const React = require('react');
   const { Text } = require('react-native');
 

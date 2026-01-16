@@ -33,7 +33,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // ✅ Mock KeyboardAvoidingWrapper
-jest.mock('./components/KeyboardAvoidingWrapper', () => {
+jest.mock('./components/common/KeyboardAvoidingWrapper', () => {
   const React = require('react');
   return ({ children }) => <>{children}</>;
 });
@@ -104,4 +104,16 @@ jest.mock('@react-navigation/native-stack', () => {
     }),
   };
 });
+
+jest.mock('@react-navigation/bottom-tabs', () => {
+  return {
+    createBottomTabNavigator: () => {
+      return {
+        Navigator: ({ children }) => children,
+        Screen: ({ children }) => children,
+      };
+    },
+  };
+});
+
 console.log('🔥 JEST SETUP LOADED');

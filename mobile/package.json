@@ -17,8 +17,11 @@
       "<rootDir>/jest.setup.js"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!(jest-)?react-native|@react-native|@expo|expo|@expo/vector-icons)"
-    ]
+      "node_modules/(?!(jest-)?react-native|@react-native|@react-navigation|@expo|expo|@expo/vector-icons)"
+    ],
+    "moduleNameMapper": {
+      "^expo-image-picker$": "<rootDir>/__mocks__/expo-image-picker.js"
+    }
   },
   "dependencies": {
     "@babel/plugin-transform-class-properties": "^7.28.6",

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import Categories from '../../Debate/Categories';
+import Categories from './Categories';
 
 describe('Categories Screen', () => {
   it('affiche le titre et les catégories', () => {
