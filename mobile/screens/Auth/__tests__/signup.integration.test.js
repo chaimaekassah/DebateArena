@@ -4,7 +4,7 @@ import SignUp from '../signup';
 import api from '../../../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-jest.mock('../../services/api');
+jest.mock('../../../services/api');
 
 describe('SignUp - Integration Test', () => {
   const navigation = { navigate: jest.fn() };

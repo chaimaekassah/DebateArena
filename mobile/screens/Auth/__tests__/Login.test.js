@@ -10,7 +10,7 @@ const navigation = {
   navigate: mockNavigate,
 };
 
-jest.mock('../../services/api');
+jest.mock('../../../services/api');
 
 describe('Login Screen', () => {
   beforeEach(() => {
