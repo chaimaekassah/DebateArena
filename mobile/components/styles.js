@@ -229,4 +229,219 @@ export const WhiteContainer = styled.View`
   elevation: 15;
 `
 
+// profil
+export const ProfileImage = styled.Image`
+  width: 120px;
+  height: 120px;
+  border-radius: 60px;
+  border-width: 3px;
+  border-color: ${yellow};
+`;
+
+export const CameraButton = styled.TouchableOpacity`
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: ${brand};
+  border-radius: 20px;
+  padding: 8px;
+`;
+
+export const InfoBox = styled.View`
+  background-color: #F8F9FA;
+  padding: 15px;
+  border-radius: 10px;
+  border-width: 1px;
+  border-color: #E0E0E0;
+  margin-bottom: 20px;
+`;
+
+export const StatCircle = styled.View`
+  width: 70px;
+  height: 70px;
+  border-radius: 35px;
+  background-color: ${brand};
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+`;
+
+export const StatCircleYellow = styled(StatCircle)`
+  background-color: ${yellow};
+`;
+
+export const StatLabel = styled.Text`
+  font-size: 14px;
+  color: ${dark};
+  font-weight: 600;
+`;
+
+export const ProgressBar = styled.View`
+  height: 8px;
+  background-color: #E0E0E0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 5px;
+`;
+
+export const ProgressFill = styled.View`
+  height: 100%;
+  background-color: ${brand};
+  border-radius: 4px;
+`;
+
+export const BadgeContainer = styled.View`
+  background-color: #F0F7FF;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 30px;
+  width: 100%;
+`;
+
+export const BadgeIcon = styled.View`
+  width: 70px;
+  height: 70px;
+  border-radius: 35px;
+  background-color: ${yellow};
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  border-width: 3px;
+  border-color: ${white};
+`;
+
+export const BadgeName = styled.Text`
+  font-size: 18px;
+  font-weight: bold;
+  color: ${dark};
+  text-align: center;
+  margin-bottom: 5px;
+`;
+
+export const BadgeCategory = styled.Text`
+  font-size: 14px;
+  color: ${yellow};
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-align: center;
+`;
+
+export const BadgeDescription = styled.Text`
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  font-style: italic;
+`;
+
+export const EditButton = styled.TouchableOpacity`
+  padding: 5px;
+`;
+
+export const SecondaryButton = styled.TouchableOpacity`
+  align-self: center;
+  background-color: ${white};
+  border-width: 1px;
+  border-color: ${brand};
+  padding-vertical: 12px;
+  padding-horizontal: 25px;
+  border-radius: 25px;
+  align-items: center;
+`;
+
+export const SecondaryButtonText = styled.Text`
+  color: ${brand};
+  font-weight: 600;
+`;
+
+export const ModalOverlay = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+`;
+
+export const ModalContent = styled.View`
+  background-color: ${white};
+  border-radius: 15px;
+  padding: 25px;
+  width: 85%;
+  align-items: center;
+`;
+
+export const ModalTitle = styled.Text`
+  font-size: 20px;
+  margin-bottom: 20px;
+  color: ${dark};
+  font-weight: 600;
+`;
+
+export const ModalInput = styled.TextInput`
+  width: 100%;
+  height: 50px;
+  border-width: 1px;
+  border-color: #ddd;
+  border-radius: 10px;
+  padding-horizontal: 15px;
+  font-size: 16px;
+  margin-bottom: 25px;
+  background-color: #F8F9FA;
+`;
+
+export const ModalButtons = styled.View`
+  flex-direction: row;
+  width: 100%;
+  gap: 15px;
+`;
+
+export const ModalButton = styled.TouchableOpacity`
+  flex: 1;
+  padding: 15px;
+  border-radius: 10px;
+  align-items: center;
+`;
+
+export const ModalButtonCancel = styled(ModalButton)`
+  background-color: #f0f0f0;
+`;
+
+export const ModalButtonConfirm = styled(ModalButton)`
+  background-color: ${brand};
+`;
+
+export const ModalButtonText = styled.Text`
+  font-weight: 600;
+`;
+
+export const ModalButtonCancelText = styled(ModalButtonText)`
+  color: #666;
+`;
+
+export const ModalButtonConfirmText = styled(ModalButtonText)`
+  color: ${white};
+`;
+
+export const SectionTitle = styled.Text`
+  font-size: 20px;
+  margin-bottom: 20px;
+  color: ${dark};
+  font-weight: 600;
+  text-align: center;
+`;
+
+export const FieldLabel = styled.Text`
+  font-size: 14px;
+  color: ${grey};
+  margin-bottom: 5px;
+`;
+
+export const FieldContainer = styled.View`
+  margin-bottom: 20px;
+`;
+
+export const FieldHeader = styled.View`
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+`;
+
 

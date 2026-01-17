@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ScrollView } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import api from '../../services/api'; 
+import axios from 'axios';
 
 import KeyboardAvoidingWrapper from "../../components/common/KeyboardAvoidingWrapper";
 
@@ -26,48 +26,53 @@ const SignUp = ({navigation}) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSignUp = async (credentials) => {
-    setIsLoading(true);
-    try {
-      console.log("Tentative d'inscription avec:", credentials);
+      setIsLoading(true);
 
-      const formData = new FormData();
-      formData.append('nom', credentials.nom);
-      formData.append('prenom', credentials.prenom);
-      formData.append('email', credentials.email.toLowerCase().trim());
-      formData.append('password', credentials.password);
+      try {
+        console.log("Tentative d'inscription avec :", credentials);
 
-      const response = await api.post('/auth/signup', formData);
+        const formData = new FormData();
+        formData.append('nom', credentials.nom);
+        formData.append('prenom', credentials.prenom);
+        formData.append('email', credentials.email.toLowerCase().trim());
+        formData.append('password', credentials.password);
 
-      console.log("Inscription réussie:", response.data);
+        const response = await axios.post(
+          'http://192.168.11.169:8080/api/auth/signup',
+          formData
+        );
 
-      const { id, nom, prenom, email } = response.data;
+        console.log("Inscription réussie :", response.data);
 
-      await AsyncStorage.multiSet([
-        ['id', id.toString()],
-        ['nom', nom],
-        ['prenom', prenom],
-        ['email', email],
-        ['isLoggedIn', 'true'],
-      ]);
+        const { id, nom, prenom, email } = response.data;
 
-      Alert.alert(
-        "🎉 Inscription réussie !",
-        "Votre compte a été créé avec succès.",
-        [{ text: "Se connecter", onPress: () => navigation.navigate("Login") }]
-      );
+        await AsyncStorage.multiSet([
+          ['id', id.toString()],
+          ['nom', nom],
+          ['prenom', prenom],
+          ['email', email],
+          ['isLoggedIn', 'true'],
+        ]);
 
-    } catch (error) {
-      console.log("ERREUR inscription:", error.response?.data || error.message);
-      console.log("Status:", error.response?.status);
+        Alert.alert(
+          "🎉 Inscription réussie !",
+          "Votre compte a été créé avec succès.",
+          [{ text: "Se connecter", onPress: () => navigation.navigate("Login") }]
+        );
 
-      Alert.alert(
-        "❌ Erreur d'inscription",
-        error.response?.data?.message || "Impossible de créer le compte"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      } catch (error) {
+        console.log("ERREUR inscription :", error.response?.data || error.message);
+        console.log("Status :", error.response?.status);
+
+        Alert.alert(
+          "❌ Erreur d'inscription",
+          error.response?.data?.message || "Impossible de créer le compte"
+        );
+
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
 
   return (
@@ -218,12 +223,14 @@ const SignUp = ({navigation}) => {
 const MyTextInput = ({icon, isPassword, hidePassword, setHidePassword, ...props }) => {
   return (
     <View>
+      <Shadow>
         <StyledTextInput {...props} />
         {isPassword && (
           <RightIcon onPress={() => setHidePassword(!hidePassword)}>
             <Ionicons name={hidePassword ? 'eye-off' : 'eye'} size={30} color={grey}/>
           </RightIcon>
         )}
+        </Shadow>
     </View>
   );
 };

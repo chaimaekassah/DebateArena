@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import { Formik } from "formik";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Alert } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import api from '../../services/api'; 
 
@@ -28,18 +28,46 @@ const Login = ({navigation}) => {
     const handleLogin = async (credentials) => {
       setIsLoading(true);
       try {
-        const response = await api.post('/auth/signin', credentials);
-        const {token, role} = response.data;
+        console.log("Tentative de connexion avec:", credentials);
+        
+        // Formater les données comme dans Postman
+        const loginData = {
+          email: credentials.email.toLowerCase().trim(),
+          password: credentials.password
+        };
+        
+        const response = await api.post('/auth/signin', loginData);
+        const { token, role } = response.data;
 
-        //stocker
-        await AsyncStorage.setItem('userToken', token);
-        await AsyncStorage.setItem('userRole', role);
+        console.log("Connexion réussie, token reçu:", token.substring(0, 20) + "...");
+        console.log("Rôle:", role);
 
-        console.log("Connexion réussie, token stocké");
+        // Stocker les informations
+        await AsyncStorage.multiSet([
+          ['userToken', token],
+          ['userRole', role],
+          ['email', credentials.email], // Optionnel: stocker aussi l'email
+          ['isLoggedIn', 'true'],
+        ]);
+
+        console.log("Token et rôle stockés avec succès");
+        
+        // Rediriger vers l'application
         navigation.navigate("AppTabs");
-      }catch (error){
-        console.log("Erreur: ", error.response?.data || error.message);
-      }finally{
+        
+      } catch (error) {
+        console.log("ERREUR détaillée de connexion:");
+        console.log("- Message:", error.message);
+        console.log("- Status:", error.response?.status);
+        console.log("- Data:", error.response?.data);
+        
+        // Afficher une alerte pour l'utilisateur
+        Alert.alert(
+          "❌ Erreur de connexion",
+          error.response?.data?.message || 
+          "Email ou mot de passe incorrect"
+        );
+      } finally {
         setIsLoading(false);
       }
     }
