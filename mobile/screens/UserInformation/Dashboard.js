@@ -10,7 +10,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
 
-// Importez vos styles existants
 import { 
   BackgroundContainer, 
   InnerContainer, 
@@ -173,21 +172,6 @@ const Dashboard = ({ navigation }) => {
   const formatDuration = (duration) => {
     if (!duration) return 'N/A';
     return duration;
-  };
-
-  const getDifficultyColor = (difficulte) => {
-    if (!difficulte) return grey;
-    switch(difficulte.toUpperCase()) {
-      case 'FACILE': return green;
-      case 'INTERMEDIAIRE': return blue;
-      case 'DIFFICILE': return pink;
-      default: return grey;
-    }
-  };
-
-  const getDifficultyText = (difficulte) => {
-    if (!difficulte) return 'N/A';
-    return difficulte.charAt(0).toUpperCase() + difficulte.slice(1).toLowerCase();
   };
 
   const handleLogout = async () => {
@@ -715,19 +699,42 @@ const BadgeItem = ({ icon, name, color, unlocked, isCurrent = false }) => {
   );
 };
 
-// Composant d'élément de débat - SOLIDE
+// Composant d'élément de débat - CORRIGÉ
 const DebateItem = ({ title, date, note, categorie, difficulte, duree }) => {
-  const getNoteColor = (note) => {
-    const numNote = parseFloat(note);
+  // Fonctions UTILITAIRES définies à l'intérieur du composant
+  const getDifficultyColor = (difficulty) => {
+    if (!difficulty) return grey;
+    const upper = difficulty.toUpperCase();
+    if (upper === 'DEBUTANT' || upper === 'FACILE') return green;
+    if (upper === 'INTERMEDIAIRE') return blue;
+    if (upper === 'AVANCE' || upper === 'DIFFICILE') return pink;
+    return grey;
+  };
+
+  const getDifficultyText = (difficulty) => {
+    if (!difficulty) return 'N/A';
+    const map = {
+      'DEBUTANT': 'Débutant',
+      'FACILE': 'Facile',
+      'INTERMEDIAIRE': 'Intermédiaire',
+      'AVANCE': 'Avancé',
+      'DIFFICILE': 'Difficile'
+    };
+    return map[difficulty.toUpperCase()] || difficulty;
+  };
+
+  const getNoteColor = (noteValue) => {
+    if (noteValue === undefined || noteValue === null) return grey;
+    const numNote = parseFloat(noteValue);
     if (numNote >= 16) return green;
     if (numNote >= 12) return blue;
     if (numNote >= 8) return yellow;
     return pink;
   };
 
-  const getNoteText = (note) => {
-    if (note === undefined || note === null) return 'N/A';
-    return `${note}/20`;
+  const getNoteText = (noteValue) => {
+    if (noteValue === undefined || noteValue === null) return 'N/A';
+    return `${noteValue}/20`;
   };
 
   return (

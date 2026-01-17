@@ -25,7 +25,7 @@ import {
   StyledButton
 } from "../../components/styles";
 
-const { dark, yellow, blue, lightPink, pink, white, grey, brand, green } = Colors;
+const { dark, yellow, blue, lightPink, pink, white, grey, brand } = Colors;
 
 const Categories = ({ navigation, route }) => {
   const [categories, setCategories] = useState([]);
@@ -44,15 +44,12 @@ const Categories = ({ navigation, route }) => {
     try {
       setIsLoading(true);
       
-      // 1. Charger toutes les catégories disponibles depuis l'API
       const categoriesResponse = await api.get('/sujets/categories');
       const apiCategories = categoriesResponse.data || [];
       
       console.log("Catégories API:", apiCategories);
       
-      // 2. Organiser les catégories avec icônes et couleurs (utilisant VOS couleurs)
       const organizedCategories = apiCategories.map((catName, index) => {
-        // Icônes par catégorie
         const iconMap = {
           'ART': 'color-palette',
           'SCIENCE': 'flask',
@@ -69,23 +66,10 @@ const Categories = ({ navigation, route }) => {
           'PHILOSOPHIE': 'bulb',
           'EDUCATION': 'school',
           'DROIT': 'scale',
-          'SOCIETE': 'people',
-          'SCIENCES': 'flask',
-          'TECHNOLOGIES': 'hardware-chip'
+          'SOCIETE': 'people'
         };
         
-        // Utilisation de VOS couleurs existantes en version opaque
-        const colors = [
-          lightPink,  // C8ADC0 - rose clair
-          blue,       // 6DB1BF - bleu
-          yellow,     // FFC482 - jaune
-          pink,       // DB7F8E - rose
-          green,      // 4CAF50 - vert
-          lightPink,  // rotation
-          blue,
-          yellow
-        ];
-        
+        const colors = [blue, lightPink, yellow, pink];
         const color = colors[index % colors.length];
         
         const upperCat = catName.toUpperCase();
@@ -105,25 +89,26 @@ const Categories = ({ navigation, route }) => {
     } catch (error) {
       console.log("Erreur chargement catégories:", error);
       
-      // Si erreur 404 ou autre, utiliser des catégories par défaut avec VOS couleurs
-      const defaultCategories = [
-        { id: 1, name: "Science", value: "SCIENCE", icon: "flask", color: blue },
-        { id: 2, name: "Politique", value: "POLITIQUE", icon: "megaphone", color: lightPink },
-        { id: 3, name: "Technologie", value: "TECHNOLOGIE", icon: "hardware-chip", color: yellow },
-        { id: 4, name: "Culture", value: "CULTURE", icon: "book", color: pink },
-        { id: 5, name: "Économie", value: "ECONOMIE", icon: "cash", color: green },
-        { id: 6, name: "Santé", value: "SANTE", icon: "medkit", color: lightPink },
-        { id: 7, name: "Environnement", value: "ENVIRONNEMENT", icon: "leaf", color: blue },
-        { id: 8, name: "Éducation", value: "EDUCATION", icon: "school", color: yellow },
-      ];
+      let errorMessage = "Impossible de charger les catégories.";
       
-      setCategories(defaultCategories);
+      if (error.response?.status === 401) {
+        errorMessage = "Session expirée. Veuillez vous reconnecter.";
+        navigation.navigate("Login");
+        return;
+      } else if (error.response?.status === 500) {
+        errorMessage = "Erreur serveur. Veuillez réessayer plus tard.";
+      }
       
-      Alert.alert(
-        "Mode démonstration",
-        "Utilisation de catégories par défaut.",
-        [{ text: "OK" }]
-      );
+      Alert.alert("Erreur", errorMessage, [
+        { 
+          text: "Réessayer", 
+          onPress: loadCategories 
+        },
+        { 
+          text: "Retour", 
+          onPress: () => navigation.goBack() 
+        }
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -134,7 +119,6 @@ const Categories = ({ navigation, route }) => {
       setSelectedCategory(category);
       setLoadingSubjects(true);
       
-      // Charger les sujets de cette catégorie depuis l'API avec filtrage
       const response = await api.get('/sujets/filtrer', {
         params: {
           categorie: category.value
@@ -163,6 +147,10 @@ const Categories = ({ navigation, route }) => {
         errorMessage = "Paramètres de filtrage invalides.";
       } else if (error.response?.status === 404) {
         errorMessage = "Aucun sujet trouvé pour cette catégorie.";
+      } else if (error.response?.status === 401) {
+        errorMessage = "Session expirée. Veuillez vous reconnecter.";
+        navigation.navigate("Login");
+        return;
       }
       
       Alert.alert("Erreur", errorMessage);
@@ -172,7 +160,6 @@ const Categories = ({ navigation, route }) => {
   };
 
   const handleSubjectSelect = (sujet) => {
-    // Log pour déboguer l'accessibilité
     console.log("Sujet sélectionné:", {
       id: sujet.id,
       titre: sujet.titre,
@@ -191,7 +178,6 @@ const Categories = ({ navigation, route }) => {
     
     setShowSubjectsModal(false);
     
-    // Naviguer vers la page Subject avec le sujet sélectionné
     navigation.navigate("Subject", {
       sujet: sujet,
       debateType: debateType || "ENTRAINEMENT"
@@ -201,6 +187,15 @@ const Categories = ({ navigation, route }) => {
   const renderSubjectItem = ({ item }) => {
     const isAccessible = item.accessible;
     
+    let difficultyColor = dark;
+    if (item.difficulte === 'DEBUTANT') {
+      difficultyColor = blue;
+    } else if (item.difficulte === 'INTERMEDIAIRE') {
+      difficultyColor = yellow;
+    } else if (item.difficulte === 'AVANCE') {
+      difficultyColor = pink;
+    }
+    
     return (
       <TouchableOpacity 
         style={[
@@ -208,10 +203,7 @@ const Categories = ({ navigation, route }) => {
           { 
             backgroundColor: isAccessible ? white : '#f5f5f5',
             borderLeftWidth: 4,
-            borderLeftColor: isAccessible ? 
-              (item.difficulte === 'DEBUTANT' ? green : 
-               item.difficulte === 'INTERMEDIAIRE' ? yellow : 
-               item.difficulte === 'AVANCE' ? pink : brand) : grey,
+            borderLeftColor: difficultyColor,
             opacity: isAccessible ? 1 : 0.6
           }
         ]}
@@ -239,11 +231,7 @@ const Categories = ({ navigation, route }) => {
             <View style={[
               styles.difficultyBadge,
               { 
-                backgroundColor: isAccessible ? 
-                  (item.difficulte === 'DEBUTANT' ? `${green}20` : 
-                   item.difficulte === 'INTERMEDIAIRE' ? `${yellow}20` : 
-                   item.difficulte === 'AVANCE' ? `${pink}20` : `${brand}20`) : 
-                  '#f0f0f0'
+                backgroundColor: difficultyColor + '20',
               }
             ]}>
               <Ionicons 
@@ -251,20 +239,12 @@ const Categories = ({ navigation, route }) => {
                       item.difficulte === 'INTERMEDIAIRE' ? 'star-half' : 
                       'star'} 
                 size={12} 
-                color={isAccessible ? 
-                  (item.difficulte === 'DEBUTANT' ? green : 
-                   item.difficulte === 'INTERMEDIAIRE' ? dark : 
-                   item.difficulte === 'AVANCE' ? pink : brand) : 
-                  grey} 
+                color={difficultyColor} 
               />
               <Text style={[
                 styles.difficultyText,
                 { 
-                  color: isAccessible ? 
-                    (item.difficulte === 'DEBUTANT' ? green : 
-                     item.difficulte === 'INTERMEDIAIRE' ? dark : 
-                     item.difficulte === 'AVANCE' ? pink : brand) : 
-                    grey,
+                  color: difficultyColor,
                   marginLeft: 4
                 }
               ]}>
@@ -274,7 +254,7 @@ const Categories = ({ navigation, route }) => {
             
             <Text style={[
               styles.lockedText,
-              { color: isAccessible ? green : grey }
+              { color: isAccessible ? blue : grey }
             ]}>
               {isAccessible ? 
                 <><Ionicons name="checkmark-circle" size={12} /> Accessible</> :
@@ -329,7 +309,6 @@ const Categories = ({ navigation, route }) => {
             </View>
           ) : (
             <>
-              {/* Grille de catégories - 2 colonnes */}
               <View style={styles.grid}>
                 {categories.map((category) => (
                   <View 
@@ -369,7 +348,6 @@ const Categories = ({ navigation, route }) => {
                 ))}
               </View>
 
-              {/* Information */}
               <View style={styles.infoBox}>
                 <Label style={styles.infoText}>
                   ℹ️ Cliquez sur une catégorie pour voir les sujets disponibles
@@ -378,7 +356,6 @@ const Categories = ({ navigation, route }) => {
             </>
           )}
 
-          {/* Bouton retour */}
           <WhiteButton 
             onPress={() => navigation.goBack()}
             disabled={isLoading || loadingSubjects}
@@ -392,7 +369,6 @@ const Categories = ({ navigation, route }) => {
         </InnerContainer>
       </ScrollView>
 
-      {/* Modal pour afficher les sujets d'une catégorie */}
       <Modal
         visible={showSubjectsModal}
         transparent={true}
@@ -475,7 +451,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     marginBottom: 30,
-    color: lightPink,
+    color: dark,
     textAlign: 'center',
   },
   loadingContainer: {
@@ -569,7 +545,6 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 16,
   },
-  // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
