@@ -1,28 +1,25 @@
-# Communiquer avec Gemini et gérer les sessions.
+# Communiquer avec Gemini et gérer les sessions (simulation pour tests)
 import os
 import uuid
 import warnings
-import google.generativeai as genai
 from typing import Dict, List
 
 warnings.filterwarnings("ignore")
 
 
 class ChatbotService:
-    def __init__(self, api_key: str):
-        """Initialiser le service chatbot avec l'API Gemini"""
-        if not api_key:
-            raise ValueError("API key manquante pour Gemini !")
-        
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(model_name="gemini-2.5-flash")
-        
+    def __init__(self, api_key: str = None):
+        """Initialiser le service chatbot avec simulation pour tests."""
+        # --- Si tu as l'API key et veux utiliser Gemini, tu peux configurer ici ---
+        self.api_key = api_key
+        self.model = None  # Pas utilisé dans la simulation
+
         # Conversations utilisateur
         self.sessions: Dict[str, List[dict]] = {}
-        
+
         # Évaluations pour le mode SCORE
         self.evaluations: Dict[str, List[dict]] = {}
-        
+
         # Prompt système de base
         self.system_prompt = """
 Tu es DebateMaster, un expert en argumentation et en débats.
@@ -65,122 +62,107 @@ Adaptation : Tu adaptes ton comportement selon mode.
 
     def generate_response(self, message: str, mode: str = "train", session_id: str = None) -> dict:
         """Générer une réponse du chatbot avec support des deux modes."""
-        
+
         # --- Créer ou récupérer la session ---
         if not session_id:
             session_id = str(uuid.uuid4())
-        
+
         if session_id not in self.sessions:
             self.sessions[session_id] = []
             self.evaluations[session_id] = []
-        
+
         # --- Enregistrer le message utilisateur ---
         self.sessions[session_id].append({"role": "user", "content": message})
-        
+
         # --- Mode 2 : analyser les arguments utilisateur ---
         if mode == "score" and message.lower() not in ["fin du débat", "fin", "score"]:
             analysis = self._evaluate_argument(message)
             self.evaluations[session_id].append(analysis)
-        
+
         # --- Si l'utilisateur demande le score final ---
         if mode == "score" and message.lower() in ["fin du débat", "fin", "score"]:
             final_report = self._generate_final_score(session_id)
             self.sessions[session_id].append({"role": "assistant", "content": final_report})
             return {"text": final_report, "session_id": session_id}
-        
-        # --- Générer la réponse du chatbot (débat normal ou score analytiques) ---
-        try:
-            context = self._build_context(session_id)
-            full_prompt = f"{self.system_prompt}\n\nMODE ACTUEL : {mode}\n\n{context}\nUtilisateur : {message}"
-            
-            response = self.model.generate_content(full_prompt)
-            response_text = response.text
-            
-            # Sauvegarder réponse IA
-            self.sessions[session_id].append({
-                "role": "assistant",
-                "content": response_text
-            })
-            
-            return {"text": response_text, "session_id": session_id}
-        
-        except Exception as e:
-            raise Exception(f"Erreur génération IA : {str(e)}")
+
+        # --- Générer une réponse simulée pour le chatbot ---
+        response_text = f"Argument enregistré : {message[:50]}..."  # simulation simple
+        self.sessions[session_id].append({"role": "assistant", "content": response_text})
+
+        return {"text": response_text, "session_id": session_id}
 
     def _build_context(self, session_id: str) -> str:
         """Reconstruire le contexte des derniers échanges."""
         history = self.sessions.get(session_id, [])[-10:]
         context = ""
-        
+
         for msg in history:
             role = "User" if msg["role"] == "user" else "Assistant"
             context += f"{role}: {msg['content']}\n"
-        
+
         return context
 
     def _evaluate_argument(self, message: str) -> dict:
-        """Analyse automatique d'un argument utilisateur (mode score)."""
-        prompt = f"""
-Analyse ce message d'utilisateur pour un débat :
-
-Message : "{message}"
-
-Donne une analyse sous forme de JSON avec :
-- idee_principale (texte)
-- logique (score 0-20)
-- preuves (score 0-20)
-- force_argumentative (score 0-20)
-- structure (score 0-20)
-- clarte_style (score 0-20)
-"""
-        
-        response = self.model.generate_content(prompt)
-        
-        # Gemini répond souvent en JSON directement
-        try:
-            import json
-            return json.loads(response.text)
-        except:
-            return {"raw": response.text}
+        """Simulation d'analyse automatique d'un argument utilisateur (mode score)."""
+        # Ici on simule des notes pour chaque critère, pour tests
+        return {
+            "idee_principale": message[:50],  # résumé
+            "logique": 15,
+            "preuves": 14,
+            "force_argumentative": 16,
+            "structure": 15,
+            "clarte_style": 16
+        }
 
     def _generate_final_score(self, session_id: str) -> str:
-        """Générer score final à partir des évaluations du débat."""
+        """Générer score final à partir des évaluations du débat (sécurisé)."""
         evaluations = self.evaluations.get(session_id, [])
-        
+
         if not evaluations:
-            return "Aucun argument à évaluer."
-        
-        # Calcul du score global
-        total_score = 0
+            return (
+                "⚠️ Aucun argument n’a été fourni.\n"
+                "Veuillez proposer au moins un argument avant de demander le score."
+            )
+
         criteres = ["logique", "preuves", "force_argumentative", "structure", "clarte_style"]
-        count = 0
-        
+
+        total = 0
+        nb_notes = 0
+
         for ev in evaluations:
+            if not isinstance(ev, dict):
+                continue
             for c in criteres:
-                if c in ev:
-                    total_score += ev[c]
-                    count += 1
-        
-        final_score = round((total_score / (count * 20)) * 100, 2)  # pourcentage
-        
-        # Construction d'un rapport clair
+                valeur = ev.get(c)
+                if isinstance(valeur, (int, float)):
+                    total += valeur
+                    nb_notes += 1
+
+        if nb_notes == 0:
+            return (
+                "⚠️ Les arguments fournis n’étaient pas suffisamment exploitables "
+                "pour établir une évaluation chiffrée.\nMerci de formuler des arguments plus clairs et structurés."
+            )
+
+        score_final = round((total / (nb_notes * 20)) * 100, 2)
+
         rapport = f"""
-🎯 **Score final du débat : {final_score}/100**
+🎯 **Score final du débat : {score_final}/100**
 
 ✅ **Points forts**
-- Analyse basée sur les arguments fournis
+- Arguments analysés sur plusieurs critères
 
 ❌ **Points à améliorer**
-- Cohérence
 - Structure
 - Preuves
+- Clarté
 
-📘 **Conseils :**
-- Utilise des exemples concrets
-- Structure tes arguments en 3 étapes (idée, justification, preuve)
-- Améliore la clarté et la logique interne
+📘 **Conseils**
+- Formuler une idée claire par argument
+- Justifier chaque affirmation par un exemple
+- Structurer les réponses (idée → justification → exemple)
 """
-        
+
         return rapport
 
     def clear_session(self, session_id: str):
