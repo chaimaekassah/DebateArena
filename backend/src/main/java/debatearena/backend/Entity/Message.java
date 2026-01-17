@@ -36,6 +36,9 @@ public class Message {
         this.timestamp = LocalDateTime.now();
     }
 
+    public Message() {
+    }
+
     public Long getId() {
         return id;
     }
