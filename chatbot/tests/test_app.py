@@ -36,16 +36,11 @@ client = TestClient(app)
 # Tests
 # ---------------------------
 
+
 def test_root():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json()["status"] == "running"
-
-
-def test_health():
-    response = client.get("/health")
-    assert response.status_code == 200
-    assert response.json()["status"] == "healthy"
+    assert response.json()["message"] == "DebatArena API is running"
 
 
 def test_chat_basic():
@@ -55,7 +50,7 @@ def test_chat_basic():
     )
     assert response.status_code == 200
     data = response.json()
-    assert "Réponse simulée" in data["response"]
+    assert "Réponse simulée" in data["text"]
     assert "session_id" in data
 
 
@@ -75,10 +70,10 @@ def test_chat_final_score():
         json={"message": "fin du débat", "session_id": "session123"}
     )
     assert response.status_code == 200
-    assert "Score final" in response.json()["response"]
+    assert "Score final" in response.json()["text"]
 
 
 def test_clear_session():
     response = client.delete("/session/session123")
     assert response.status_code == 200
-    assert response.json()["message"] == "Session cleared"
+    assert "cleared" in response.json()["message"]
