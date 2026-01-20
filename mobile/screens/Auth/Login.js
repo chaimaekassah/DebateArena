@@ -30,29 +30,39 @@ const Login = ({navigation}) => {
       try {
         console.log("Tentative de connexion avec:", credentials);
         
-        // Formater les données comme dans Postman
+        // Supprimer l'ancien token si présent
+        await AsyncStorage.removeItem('userToken');
+        
         const loginData = {
           email: credentials.email.toLowerCase().trim(),
           password: credentials.password
         };
         
-        const response = await api.post('/auth/signin', loginData);
+        console.log("Données envoyées:", JSON.stringify(loginData, null, 2));
+        
+        // Appel API SANS token dans les headers
+        const response = await api.post('/auth/signin', loginData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        
         const { token, role } = response.data;
-
-        console.log("Connexion réussie, token reçu:", token.substring(0, 20) + "...");
+        console.log("Connexion réussie, token reçu");
         console.log("Rôle:", role);
 
-        // Stocker les informations
+        // Stocker le NOUVEAU token
         await AsyncStorage.multiSet([
           ['userToken', token],
           ['userRole', role],
-          ['email', credentials.email], // Optionnel: stocker aussi l'email
+          ['email', credentials.email],
           ['isLoggedIn', 'true'],
         ]);
 
-        console.log("Token et rôle stockés avec succès");
+        console.log("Nouveau token stocké avec succès");
         
-        // Rediriger vers l'application
+        // Rediriger
         navigation.navigate("AppTabs");
         
       } catch (error) {
@@ -61,7 +71,6 @@ const Login = ({navigation}) => {
         console.log("- Status:", error.response?.status);
         console.log("- Data:", error.response?.data);
         
-        // Afficher une alerte pour l'utilisateur
         Alert.alert(
           "❌ Erreur de connexion",
           error.response?.data?.message || 
@@ -123,7 +132,7 @@ const Login = ({navigation}) => {
                 hidePassword={hidePassword}
                 setHidePassword={setHidePassword}
               />
-              <TextLink>
+              <TextLink onPress={() => navigation.navigate("ForgotPassword")}>
                 <TextLinkContent style={{marginBottom: 60}}>Mot de passe oublié?</TextLinkContent>
               </TextLink>
               <Shadow>

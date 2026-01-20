@@ -46,6 +46,8 @@ import {
 
 const { dark, yellow, blue, lightPink, pink, white, grey, brand, green, darkLight } = Colors;
 
+const BASE_URL = 'http://192.168.11.169:8080';
+
 const Profil = ({ navigation }) => {
   const [user, setUser] = useState({
     id: null,
@@ -77,6 +79,29 @@ const Profil = ({ navigation }) => {
     score: 0
   });
 
+  // Fonction utilitaire pour construire l'URL complète de l'image
+  const buildImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    
+    // Si c'est déjà une URL complète
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    
+    // Si c'est un chemin de fichier local
+    if (imagePath.startsWith('file://')) {
+      return imagePath;
+    }
+    
+    // Si c'est un chemin relatif
+    if (imagePath.startsWith('/uploads/') || imagePath.startsWith('/images/') || imagePath.startsWith('/profile/')) {
+      return `${BASE_URL}${imagePath}`;
+    }
+    
+    // Si c'est juste un nom de fichier
+    return `${BASE_URL}/uploads/${imagePath}`;
+  };
+
   useEffect(() => {
     loadUserData();
   }, []);
@@ -85,24 +110,45 @@ const Profil = ({ navigation }) => {
     try {
       setLoading(true);
       
+      // Vérifiez d'abord le token
+      const token = await AsyncStorage.getItem('userToken');
+      
+      if (!token) {
+        Alert.alert("Erreur", "Vous devez être connecté pour voir votre profil");
+        navigation.replace('Login');
+        return;
+      }
+
       // Récupérer les données du profil depuis l'API
       const response = await api.get('/me');
       
       if (response.data) {
+        // Construire l'URL de l'image
+        const imageUrl = buildImageUrl(
+          response.data.imagePath || 
+          response.data.imageUrl || 
+          response.data.profileImage || 
+          response.data.photoUrl ||
+          response.data.image
+        );
+        
         setUser({
           id: response.data.id || null,
           nom: response.data.nom || '',
           prenom: response.data.prenom || '',
           email: response.data.email || '',
           role: response.data.role || 'UTILISATEUR',
-          imagePath: response.data.imagePath || null
+          imagePath: imageUrl
         });
         
         // Sauvegarder dans AsyncStorage
-        await AsyncStorage.setItem('nom', response.data.nom || '');
-        await AsyncStorage.setItem('prenom', response.data.prenom || '');
-        await AsyncStorage.setItem('email', response.data.email || '');
-        await AsyncStorage.setItem('userId', response.data.id?.toString() || '');
+        await AsyncStorage.multiSet([
+          ['nom', response.data.nom || ''],
+          ['prenom', response.data.prenom || ''],
+          ['email', response.data.email || ''],
+          ['userId', response.data.id?.toString() || ''],
+          ['profileImage', imageUrl || '']
+        ]);
         
         // Charger les statistiques
         try {
@@ -117,17 +163,16 @@ const Profil = ({ navigation }) => {
             });
           }
         } catch (dashboardError) {
-          console.log("Erreur lors du chargement des stats:", dashboardError);
+          // Silencieux en cas d'erreur de statistiques
         }
       }
     } catch (error) {
-      console.log("Erreur lors du chargement du profil:", error);
-      
       // Charger depuis AsyncStorage en cas d'erreur
       const nom = await AsyncStorage.getItem('nom') || 'Utilisateur';
       const prenom = await AsyncStorage.getItem('prenom') || '';
       const email = await AsyncStorage.getItem('email') || '';
       const userId = await AsyncStorage.getItem('userId') || '';
+      const profileImage = await AsyncStorage.getItem('profileImage');
       
       setUser({
         id: userId,
@@ -135,7 +180,7 @@ const Profil = ({ navigation }) => {
         prenom,
         email,
         role: 'UTILISATEUR',
-        imagePath: null
+        imagePath: profileImage
       });
       
       // Charger les stats depuis AsyncStorage
@@ -166,28 +211,87 @@ const Profil = ({ navigation }) => {
     try {
       setUpdating(true);
       
-      const updateData = {
-        nom: newNom || user.nom,
-        prenom: newPrenom || user.prenom,
-        image: user.imagePath
-      };
+      // CRÉEZ UN FormData COMME DANS SIGNUP
+      const formData = new FormData();
       
-      const response = await api.put('/me', updateData);
+      // Ajoutez les champs (comme dans signup.js)
+      formData.append('nom', newNom.trim() || user.nom);
+      formData.append('prenom', newPrenom.trim() || user.prenom);
+      
+      // UTILISEZ L'ENDPOINT CORRECT
+      const response = await api.put('/me', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       
       if (response.data) {
-        setUser(response.data);
-        await AsyncStorage.setItem('nom', response.data.nom);
-        await AsyncStorage.setItem('prenom', response.data.prenom);
+        // Construire l'URL de l'image si elle est retournée
+        const imageUrl = response.data.imagePath ? buildImageUrl(response.data.imagePath) : user.imagePath;
+        
+        // Mettez à jour l'état
+        setUser(prev => ({
+          ...prev,
+          nom: response.data.nom,
+          prenom: response.data.prenom,
+          imagePath: imageUrl
+        }));
+        
+        // Sauvegardez dans AsyncStorage
+        await AsyncStorage.multiSet([
+          ['nom', response.data.nom],
+          ['prenom', response.data.prenom],
+        ]);
         
         Alert.alert('Succès', 'Profil mis à jour avec succès !');
+        
+        // Fermez les modales
+        setEditNomModal(false);
+        setEditPrenomModal(false);
+        
+        // Réinitialiser les valeurs
+        setNewNom('');
+        setNewPrenom('');
       }
     } catch (error) {
-      console.log("Erreur lors de la mise à jour:", error);
-      Alert.alert('Erreur', 'Impossible de mettre à jour le profil. Veuillez réessayer.');
+      // Essayez avec JSON si FormData échoue
+      if (error.response?.status === 400 || error.response?.status === 415) {
+        try {
+          const jsonResponse = await api.put('/me', {
+            nom: newNom.trim() || user.nom,
+            prenom: newPrenom.trim() || user.prenom,
+          });
+          
+          if (jsonResponse.data) {
+            setUser(prev => ({
+              ...prev,
+              nom: jsonResponse.data.nom,
+              prenom: jsonResponse.data.prenom
+            }));
+            
+            await AsyncStorage.multiSet([
+              ['nom', jsonResponse.data.nom],
+              ['prenom', jsonResponse.data.prenom],
+            ]);
+            
+            Alert.alert('Succès', 'Profil mis à jour avec succès !');
+            setEditNomModal(false);
+            setEditPrenomModal(false);
+            setNewNom('');
+            setNewPrenom('');
+            return;
+          }
+        } catch (jsonError) {
+          // Continuer avec l'erreur originale
+        }
+      }
+      
+      Alert.alert(
+        'Erreur', 
+        error.response?.data?.message || 'Impossible de mettre à jour le profil.'
+      );
     } finally {
       setUpdating(false);
-      setEditNomModal(false);
-      setEditPrenomModal(false);
     }
   };
 
@@ -204,14 +308,13 @@ const Profil = ({ navigation }) => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
+        quality: 0.7,
       });
 
       if (!result.canceled && result.assets && result.assets[0]) {
         uploadImage(result.assets[0].uri);
       }
     } catch (error) {
-      console.log("Erreur lors de la sélection d'image:", error);
       Alert.alert('Erreur', 'Impossible de sélectionner une image.');
     }
   };
@@ -228,14 +331,13 @@ const Profil = ({ navigation }) => {
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
+        quality: 0.7,
       });
 
       if (!result.canceled && result.assets && result.assets[0]) {
         uploadImage(result.assets[0].uri);
       }
     } catch (error) {
-      console.log("Erreur lors de la prise de photo:", error);
       Alert.alert('Erreur', 'Impossible de prendre une photo.');
     }
   };
@@ -245,29 +347,71 @@ const Profil = ({ navigation }) => {
       setUploading(true);
       
       const formData = new FormData();
-      const filename = imageUri.split('/').pop();
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : 'image/jpeg';
       
+      // Créez un nom de fichier unique
+      const timestamp = Date.now();
+      const filename = `profile_${timestamp}.jpg`;
+      
+      // Ajoutez le fichier au FormData
       formData.append('image', {
         uri: imageUri,
         name: filename,
-        type,
+        type: 'image/jpeg',
       });
       
-      const response = await api.put('/me/image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // Essayez différents endpoints
+      let response;
+      try {
+        // Premier essai : endpoint standard
+        response = await api.put('/me/image', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      } catch (firstError) {
+        try {
+          response = await api.post('/upload', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+        } catch (secondError) {
+          response = await api.put('/profile/image', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+        }
+      }
       
       if (response.data) {
-        setUser(response.data);
+        // Gérer différentes réponses du backend
+        const imageData = response.data.imagePath || 
+                         response.data.imageUrl || 
+                         response.data.url || 
+                         response.data.profileImage ||
+                         response.data.image ||
+                         response.data.photoUrl;
+        
+        // Construire l'URL complète
+        const imageUrl = buildImageUrl(imageData);
+        
+        // Mettez à jour l'état
+        setUser(prev => ({
+          ...prev,
+          imagePath: imageUrl
+        }));
+        
+        // Sauvegarder dans AsyncStorage
+        await AsyncStorage.setItem('profileImage', imageUrl || '');
+        
         Alert.alert('Succès', 'Photo de profil mise à jour !');
       }
     } catch (error) {
-      console.log("Erreur lors de l'upload de l'image:", error);
-      Alert.alert('Erreur', 'Impossible de mettre à jour la photo de profil.');
+      Alert.alert(
+        'Erreur', 
+        error.response?.data?.message || 'Impossible de mettre à jour la photo.'
+      );
     } finally {
       setUploading(false);
     }
@@ -312,7 +456,7 @@ const Profil = ({ navigation }) => {
               await AsyncStorage.clear();
               navigation.replace('Login');
             } catch (error) {
-              console.log("Erreur lors de la déconnexion:", error);
+              // Erreur silencieuse lors de la déconnexion
             }
           },
         },
@@ -357,7 +501,7 @@ const Profil = ({ navigation }) => {
               <View style={{ width: 24 }} />
             </View>
 
-            {/* Section Photo de profil - SANS CADRE BLANC */}
+            {/* Section Photo de profil */}
             <View style={{ 
               alignItems: 'center',
               marginBottom: 30,
@@ -372,7 +516,8 @@ const Profil = ({ navigation }) => {
                       height: 140, 
                       borderRadius: 70,
                       borderWidth: 4,
-                      borderColor: yellow
+                      borderColor: yellow,
+                      backgroundColor: '#f0f0f0'
                     }}
                     resizeMode="cover"
                   />
@@ -435,7 +580,7 @@ const Profil = ({ navigation }) => {
               </Text>
             </View>
 
-            {/* Section Informations personnelles - EN PREMIER */}
+            {/* Section Informations personnelles */}
             <Shadow style={{ 
               backgroundColor: white,
               borderRadius: 38,
@@ -506,7 +651,7 @@ const Profil = ({ navigation }) => {
               </FieldContainer>
             </Shadow>
 
-            {/* Section Statistiques - EN SECOND */}
+            {/* Section Statistiques */}
             <Shadow style={{ 
               backgroundColor: white,
               borderRadius: 38,
@@ -620,30 +765,6 @@ const Profil = ({ navigation }) => {
 
             {/* Actions */}
             <View style={{ width: '100%', alignItems: 'center', marginTop: 10 }}>
-              <TouchableOpacity 
-                onPress={() => navigation.navigate('Dashboard')}
-                style={{
-                  alignSelf: 'center',
-                  backgroundColor: white,
-                  borderWidth: 2,
-                  borderColor: brand,
-                  paddingVertical: 14,
-                  paddingHorizontal: 30,
-                  borderRadius: 30,
-                  alignItems: 'center',
-                  marginBottom: 15,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 4,
-                  elevation: 4
-                }}
-              >
-                <Text style={{ color: brand, fontWeight: 'bold', fontSize: 16 }}>
-                  <Ionicons name="stats-chart" size={18} style={{ marginRight: 8 }} />
-                  Retour au Tableau de Bord
-                </Text>
-              </TouchableOpacity>
               
               <TouchableOpacity 
                 onPress={handleLogout}
@@ -726,7 +847,10 @@ const Profil = ({ navigation }) => {
             />
             <View style={{ flexDirection: 'row', width: '100%', gap: 15 }}>
               <TouchableOpacity
-                onPress={() => setEditNomModal(false)}
+                onPress={() => {
+                  setNewNom('');
+                  setEditNomModal(false);
+                }}
                 style={{
                   flex: 1,
                   padding: 16,
@@ -805,7 +929,10 @@ const Profil = ({ navigation }) => {
             />
             <View style={{ flexDirection: 'row', width: '100%', gap: 15 }}>
               <TouchableOpacity
-                onPress={() => setEditPrenomModal(false)}
+                onPress={() => {
+                  setNewPrenom('');
+                  setEditPrenomModal(false);
+                }}
                 style={{
                   flex: 1,
                   padding: 16,

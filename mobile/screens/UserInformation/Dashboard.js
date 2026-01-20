@@ -313,7 +313,7 @@ const Dashboard = ({ navigation }) => {
             {/* Bouton modifier profil */}
             <StyledButton 
               style={{ 
-                backgroundColor: brand,
+                backgroundColor: dark,
                 marginBottom: 0,
                 marginTop: 10
               }}
@@ -538,60 +538,6 @@ const Dashboard = ({ navigation }) => {
 
           {/* Actions Rapides - Utilisation de WhiteButton avec style modifié */}
           <View style={{ width: '100%', marginTop: 20, marginBottom: 30 }}>
-            <Label style={{ 
-              fontSize: 18, 
-              fontWeight: 'bold', 
-              color: white, 
-              marginBottom: 15,
-              textAlign: 'center'
-            }}>
-              Actions Rapides
-            </Label>
-            
-            <WhiteButton 
-              style={{ 
-                marginBottom: 10,
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.2)'
-              }}
-              onPress={() => navigation.navigate('Débat')}
-            >
-              <ButtonText style={{ color: white, fontSize: 16 }}>
-                <Ionicons name="search" size={16} />
-                {' '}Nouveau Débat
-              </ButtonText>
-            </WhiteButton>
-            
-            <WhiteButton 
-              style={{ 
-                marginBottom: 10,
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.2)'
-              }}
-              onPress={() => navigation.navigate('DebateHistory')}
-            >
-              <ButtonText style={{ color: white, fontSize: 16 }}>
-                <Ionicons name="time" size={16} />
-                {' '}Voir l'Historique
-              </ButtonText>
-            </WhiteButton>
-            
-            <WhiteButton 
-              style={{ 
-                marginBottom: 10,
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.2)'
-              }}
-              onPress={() => navigation.navigate('Settings')}
-            >
-              <ButtonText style={{ color: white, fontSize: 16 }}>
-                <Ionicons name="settings" size={16} />
-                {' '}Paramètres
-              </ButtonText>
-            </WhiteButton>
             
             <StyledButton 
               style={{ 
@@ -699,7 +645,7 @@ const BadgeItem = ({ icon, name, color, unlocked, isCurrent = false }) => {
   );
 };
 
-// Composant d'élément de débat - CORRIGÉ
+
 const DebateItem = ({ title, date, note, categorie, difficulte, duree }) => {
   // Fonctions UTILITAIRES définies à l'intérieur du composant
   const getDifficultyColor = (difficulty) => {

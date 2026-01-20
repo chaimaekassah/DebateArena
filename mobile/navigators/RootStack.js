@@ -10,6 +10,9 @@ import Categories from './../screens/Debate/Categories';
 import Subject from '../screens/Debate/Subject';
 import StartDebate from '../screens/Debate/StartDebate';
 import Chat from '../screens/Debate/Chat';
+import Dashboard from '../screens/UserInformation/Dashboard';
+import DebateResult from '../screens/Debate/DebateResult';
+import ForgotPassword from '../screens/Auth/ForgotPassword';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,12 +32,15 @@ const RootStack = () => {
         
 
         {/* Navigation principale avec onglets */}
-
         <Stack.Screen name="AppTabs" component={AppTabs} />
+
         <Stack.Screen name="Categories" component={Categories} />
         <Stack.Screen name="Subject" component={Subject} />
         <Stack.Screen name="Chat" component={Chat} />
         <Stack.Screen name="StartDebate" component={StartDebate} />
+        <Stack.Screen name="Dashboard" component={Dashboard} />
+        <Stack.Screen name="DebateResult" component={DebateResult} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
 
       </Stack.Navigator>
     </NavigationContainer>
