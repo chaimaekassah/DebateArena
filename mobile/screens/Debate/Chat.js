@@ -340,7 +340,7 @@ const Chat = ({ navigation, route }) => {
                   [
                     { 
                       text: "OK", 
-                      onPress: () => navigation.navigate("Dashboard") 
+                      onPress: () => navigation.navigate("AppTabs") 
                     }
                   ]
                 );

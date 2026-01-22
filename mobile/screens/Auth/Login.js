@@ -62,8 +62,14 @@ const Login = ({navigation}) => {
 
         console.log("Nouveau token stocké avec succès");
         
-        // Rediriger
-        navigation.navigate("AppTabs");
+        // 🔄 REDIRECTION EN FONCTION DU RÔLE
+        if (role === 'ADMIN') {
+          console.log("Redirection vers AdminTabs");
+          navigation.replace('AdminTabs');
+        } else {
+          console.log("Redirection vers AppTabs (utilisateur standard)");
+          navigation.replace('AppTabs');
+        }
         
       } catch (error) {
         console.log("ERREUR détaillée de connexion:");

@@ -54,7 +54,7 @@ const SignUp = ({navigation}) => {
         console.log("FormData créé");
 
         const response = await axios.post(
-          'http://192.168.11.180:8080/api/auth/signup',
+          'http://192.168.11.181:8080/api/auth/signup',
           formData,
           {
             timeout: 30000, // 30 secondes
@@ -110,7 +110,7 @@ const SignUp = ({navigation}) => {
 
       } catch (error) {
         console.log("❌ ERREUR API ==========================");
-        console.log("URL: http://192.168.11.180:8080/api/auth/signup");
+        console.log("URL: http://192.168.11.181:8080/api/auth/signup");
         console.log("Method: POST");
         console.log("Status:", error.response?.status);
         console.log("Status Text:", error.response?.statusText);

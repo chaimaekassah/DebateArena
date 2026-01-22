@@ -275,7 +275,7 @@ const DebateResult = ({ navigation, route }) => {
           <View style={styles.actionsCard}>
             <StyledButton 
               style={styles.primaryButton}
-              onPress={() => navigation.navigate('Dashboard')}
+              onPress={() => navigation.navigate('AppTabs')}
             >
               <ButtonText style={styles.buttonText}>
                 <Ionicons name="home" size={20} />
