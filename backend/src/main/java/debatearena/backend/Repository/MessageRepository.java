@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,4 +56,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             @Param("messageId") Long messageId,
             @Param("debatId") Long debatId
     );
+
+    // Compter les messages depuis une date
+    @Query("SELECT COUNT(m) FROM Message m WHERE m.timestamp >= :dateDebut")
+    Integer countMessagesDepuis(@Param("dateDebut") LocalDateTime dateDebut);
 }

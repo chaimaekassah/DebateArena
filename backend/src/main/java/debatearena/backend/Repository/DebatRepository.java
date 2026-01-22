@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,4 +51,18 @@ public interface DebatRepository extends JpaRepository<Debat, Long> {
     // Débats terminés
     @Query("SELECT d FROM Debat d WHERE d.utilisateur = :utilisateur AND d.duree IS NOT NULL")
     List<Debat> findDebatsTerminesByUtilisateur(@Param("utilisateur") Utilisateur utilisateur);
+
+    // Statistiques pour le dashboard admin
+    @Query("SELECT COUNT(d) FROM Debat d WHERE d.dateDebut >= :dateDebut")
+    Integer countDebatsDepuis(@Param("dateDebut") LocalDateTime dateDebut);
+
+    @Query("SELECT COUNT(d) FROM Debat d WHERE d.duree IS NULL")
+    Integer countDebatsEnCours();
+
+    // Statistiques par sujet
+    @Query("SELECT d.sujet.id, COUNT(d) FROM Debat d GROUP BY d.sujet.id")
+    List<Object[]> countDebatsBySujet();
+
+    @Query("SELECT d.sujet.id, COUNT(d) FROM Debat d WHERE d.dateDebut >= :dateDebut GROUP BY d.sujet.id")
+    List<Object[]> countDebatsBySujetDepuis(@Param("dateDebut") LocalDateTime dateDebut);
 }

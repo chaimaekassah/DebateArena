@@ -35,4 +35,11 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
             "SELECT id, ROW_NUMBER() OVER (ORDER BY score DESC) as rank FROM utilisateur" +
             ") ranked WHERE id = :userId", nativeQuery = true)
     Optional<Integer> findRankByUserId(@Param("userId") Long userId);
+
+    // Statistiques pour l'admin
+    @Query("SELECT COUNT(u) FROM Utilisateur u WHERE u.role = 'UTILISATEUR'")
+    Integer countTotalUtilisateurs();
+
+    @Query("SELECT COUNT(u) FROM Utilisateur u WHERE u.role = 'UTILISATEUR' AND u.id >= :dateReference")
+    Integer countNouveauxUtilisateurs(@Param("dateReference") Long dateReference);
 }
