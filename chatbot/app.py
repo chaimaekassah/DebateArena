@@ -6,7 +6,10 @@ from pydantic import BaseModel
 from typing import Optional
 from dotenv import load_dotenv
 
-from chatbot_service import ChatbotService
+try:
+    from chatbot.chatbot_service import ChatbotService
+except ModuleNotFoundError:
+    from chatbot_service import ChatbotService
 
 # Charger les variables d'environnement
 load_dotenv()
