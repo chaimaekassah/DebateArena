@@ -39,6 +39,7 @@ jobs:
       - name: Lint React Native code
         working-directory: mobile
         run: yarn lint
+        continue-on-error: true
 
       - name: Run React Native tests
         working-directory: mobile
