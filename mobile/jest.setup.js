@@ -109,5 +109,3 @@ jest.mock('./components/styles', () => ({
     green: '#0f0',
   },
 }));
-
-console.log('🔥 JEST SETUP LOADED');
