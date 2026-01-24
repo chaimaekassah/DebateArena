@@ -15,7 +15,7 @@ on:
       - 'chatbot/**'
 
 jobs:
-  test:
+  test-chatbot:
     runs-on: ubuntu-latest
 
     steps:

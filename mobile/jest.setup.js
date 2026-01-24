@@ -26,11 +26,19 @@ jest.mock('@expo/vector-icons', () => {
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
 // ✅ Mock navigation si besoin
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: jest.fn(),
-  }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+      goBack: jest.fn(),
+    }),
+    useRoute: () => ({
+      params: {},
+    }),
+  };
+});
 
 // ✅ Mock KeyboardAvoidingWrapper
 jest.mock('./components/common/KeyboardAvoidingWrapper', () => {
@@ -38,34 +46,6 @@ jest.mock('./components/common/KeyboardAvoidingWrapper', () => {
   return ({ children }) => <>{children}</>;
 });
 
-jest.mock('react-native-keyboard-aware-scroll-view', () => {
-  const { ScrollView } = require('react-native');
-  return {
-    KeyboardAwareScrollView: ScrollView,
-  };
-});
-
-jest.mock('react-native-keyboard-aware-scroll-view', () => {
-  const { ScrollView } = require('react-native');
-  return {
-    KeyboardAwareScrollView: ScrollView,
-  };
-});
-
-jest.mock('react-native-keyboard-aware-scroll-view', () => {
-  const { ScrollView } = require('react-native');
-  return {
-    KeyboardAwareScrollView: ScrollView,
-  };
-});
-jest.mock('react-native-keyboard-aware-scroll-view', () => {
-  const { ScrollView } = require('react-native');
-  return {
-    KeyboardAwareScrollView: ScrollView,
-  };
-});
-
-//✅ Mock KeyboardAwareScrollView
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
   const { ScrollView } = require('react-native');
   return {
@@ -115,5 +95,19 @@ jest.mock('@react-navigation/bottom-tabs', () => {
     },
   };
 });
+
+jest.mock('./components/styles', () => ({
+  Colors: {
+    dark: '#000',
+    yellow: '#ff0',
+    blue: '#00f',
+    lightPink: '#fcc',
+    pink: '#f0c',
+    white: '#fff',
+    grey: '#999',
+    brand: '#123',
+    green: '#0f0',
+  },
+}));
 
 console.log('🔥 JEST SETUP LOADED');

@@ -11,7 +11,7 @@ on:
       - 'mobile/**'
 
 jobs:
-  build-android:
+  test-mobile:
     runs-on: ubuntu-latest
 
     steps:
