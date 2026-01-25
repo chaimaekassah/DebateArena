@@ -3,17 +3,44 @@ package debatearena.backend.Repository;
 import debatearena.backend.Entity.Sujet;
 import debatearena.backend.Entity.categorie_sujet_enum;
 import debatearena.backend.Entity.niveau_enum;
+import debatearena.backend.Integration.CustomH2Dialect; // IMPORTANT : Importez le fichier créé précédemment
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+// On applique l'initializer pour forcer la configuration H2 et le dialecte AVANT le démarrage
+@ContextConfiguration(initializers = SujetRepositoryTest.TestDbInitializer.class)
 class SujetRepositoryTest {
+
+    // --- INITIALIZER POUR FORCER LA CONFIGURATION ---
+    public static class TestDbInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @Override
+        public void initialize(ConfigurableApplicationContext applicationContext) {
+            TestPropertyValues.of(
+                    // Force la connexion H2
+                    "spring.datasource.url=jdbc:h2:mem:debatearena_test_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false",
+                    "spring.datasource.driverClassName=org.h2.Driver",
+                    "spring.datasource.username=sa",
+                    "spring.datasource.password=",
+                    // Utilise notre dialecte externe pour gérer les ENUMS
+                    "spring.jpa.database-platform=" + CustomH2Dialect.class.getName(),
+                    "spring.jpa.hibernate.ddl-auto=create-drop",
+                    // Désactive les migrations
+                    "spring.flyway.enabled=false",
+                    "spring.liquibase.enabled=false"
+            ).applyTo(applicationContext.getEnvironment());
+        }
+    }
 
     @Autowired
     private SujetRepository sujetRepository;

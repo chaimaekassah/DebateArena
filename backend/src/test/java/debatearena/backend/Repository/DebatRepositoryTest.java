@@ -3,15 +3,18 @@ package debatearena.backend.Repository;
 import debatearena.backend.Entity.Debat;
 import debatearena.backend.Entity.Sujet;
 import debatearena.backend.Entity.Utilisateur;
-// Importez vos Enums (adaptez le package si besoin)
 import debatearena.backend.Entity.role_enum;
 import debatearena.backend.Entity.niveau_enum;
 import debatearena.backend.Entity.categorie_sujet_enum;
-
+import debatearena.backend.Integration.CustomH2Dialect; // IMPORTANT : L'import du dialecte externe
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +23,27 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+// Configuration forcée pour utiliser H2 et le dialecte custom
+@ContextConfiguration(initializers = DebatRepositoryTest.TestDbInitializer.class)
 class DebatRepositoryTest {
+
+    // --- INITIALIZER ---
+    public static class TestDbInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @Override
+        public void initialize(ConfigurableApplicationContext applicationContext) {
+            TestPropertyValues.of(
+                    "spring.datasource.url=jdbc:h2:mem:debatearena_test_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false",
+                    "spring.datasource.driverClassName=org.h2.Driver",
+                    "spring.datasource.username=sa",
+                    "spring.datasource.password=",
+                    // Utilisation de la classe externe CustomH2Dialect pour gérer les ENUMS
+                    "spring.jpa.database-platform=" + CustomH2Dialect.class.getName(),
+                    "spring.jpa.hibernate.ddl-auto=create-drop",
+                    "spring.flyway.enabled=false",
+                    "spring.liquibase.enabled=false"
+            ).applyTo(applicationContext.getEnvironment());
+        }
+    }
 
     @Autowired
     private DebatRepository debatRepository;
@@ -34,9 +57,9 @@ class DebatRepositoryTest {
         user.setEmail(email);
         user.setNom("NomTest");
         user.setPrenom("PrenomTest");
-        user.setPassword("password123"); // Obligatoire !
-        user.setRole(role_enum.UTILISATEUR);  // Obligatoire ! (Adaptez selon votre Enum)
-        user.setScore(0);                // Obligatoire !
+        user.setPassword("password123");
+        user.setRole(role_enum.UTILISATEUR);
+        user.setScore(0);
         return user;
     }
 
@@ -44,38 +67,36 @@ class DebatRepositoryTest {
     private Sujet creerSujetValide() {
         Sujet sujet = new Sujet();
         sujet.setTitre("Sujet Test");
-        sujet.setCategorie(categorie_sujet_enum.INFORMATIQUE); // Adaptez selon votre Enum
-        sujet.setDifficulte(niveau_enum.DEBUTANT);            // Adaptez selon votre Enum
+        sujet.setCategorie(categorie_sujet_enum.INFORMATIQUE);
+        sujet.setDifficulte(niveau_enum.DEBUTANT);
         return sujet;
     }
 
     @Test
     void findDebatsEnCoursByUtilisateur_ShouldReturnOnlyOngoingDebates() {
         // ARRANGE
-        // 1. Créer un utilisateur complet
         Utilisateur user = creerUtilisateurValide("test1@test.com");
         entityManager.persist(user);
 
-        // Il faut aussi un sujet pour créer un débat (car id_sujet est NOT NULL)
         Sujet sujet = creerSujetValide();
         entityManager.persist(sujet);
 
-        // 2. Débat EN COURS
+        // 2. Débat EN COURS (duree est null)
         Debat debatEnCours = new Debat();
         debatEnCours.setUtilisateur(user);
-        debatEnCours.setSujet(sujet); // Obligatoire
+        debatEnCours.setSujet(sujet);
         debatEnCours.setDateDebut(LocalDateTime.now());
-        debatEnCours.setChoixUtilisateur("POUR"); // Probablement obligatoire
-        debatEnCours.setDuree(null);
+        debatEnCours.setChoixUtilisateur("POUR");
+        debatEnCours.setDuree(null); // Important pour le test
         entityManager.persist(debatEnCours);
 
-        // 3. Débat TERMINÉ
+        // 3. Débat TERMINÉ (duree n'est pas null)
         Debat debatTermine = new Debat();
         debatTermine.setUtilisateur(user);
         debatTermine.setSujet(sujet);
         debatTermine.setDateDebut(LocalDateTime.now().minusDays(1));
         debatTermine.setChoixUtilisateur("CONTRE");
-        debatTermine.setDuree(500);
+        debatTermine.setDuree(500); // Important pour le test
         entityManager.persist(debatTermine);
 
         entityManager.flush();

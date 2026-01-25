@@ -4,11 +4,16 @@ import debatearena.backend.Entity.*;
 import debatearena.backend.Entity.role_enum;
 import debatearena.backend.Entity.niveau_enum;
 import debatearena.backend.Entity.categorie_sujet_enum;
+import debatearena.backend.Integration.CustomH2Dialect; // IMPORTANT : L'import du dialecte externe
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,7 +22,27 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+// Configuration forcée pour utiliser H2 et le dialecte custom (évite l'erreur 6001)
+@ContextConfiguration(initializers = MessageRepositoryTest.TestDbInitializer.class)
 class MessageRepositoryTest {
+
+    // --- INITIALIZER ---
+    public static class TestDbInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @Override
+        public void initialize(ConfigurableApplicationContext applicationContext) {
+            TestPropertyValues.of(
+                    "spring.datasource.url=jdbc:h2:mem:debatearena_test_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false",
+                    "spring.datasource.driverClassName=org.h2.Driver",
+                    "spring.datasource.username=sa",
+                    "spring.datasource.password=",
+                    // Utilisation de la classe externe CustomH2Dialect pour gérer les ENUMS
+                    "spring.jpa.database-platform=" + CustomH2Dialect.class.getName(),
+                    "spring.jpa.hibernate.ddl-auto=create-drop",
+                    "spring.flyway.enabled=false",
+                    "spring.liquibase.enabled=false"
+            ).applyTo(applicationContext.getEnvironment());
+        }
+    }
 
     @Autowired
     private MessageRepository messageRepository;
@@ -59,15 +84,10 @@ class MessageRepositoryTest {
         return debat;
     }
 
-    // --- HELPER 4 : Créer un Message (CORRIGÉ) ---
+    // --- HELPER 4 : Créer un Message ---
     private Message creerMessage(Debat debat, Utilisateur auteur, String contenu, LocalDateTime time) {
-        // CORRECTION ICI : On utilise le constructeur imposé par l'erreur
-        // (String, Debat, Utilisateur)
         Message msg = new Message(contenu, debat, auteur);
-
-        // On définit le timestamp après coup
         msg.setTimestamp(time);
-
         entityManager.persist(msg);
         return msg;
     }
@@ -145,7 +165,7 @@ class MessageRepositoryTest {
         Debat debat = creerDebat(humain, sujet);
 
         creerMessage(debat, humain, "Parole humain", LocalDateTime.now());
-        Message msgBot = creerMessage(debat, bot, "Parole bot", LocalDateTime.now().plusSeconds(1));
+        creerMessage(debat, bot, "Parole bot", LocalDateTime.now().plusSeconds(1));
 
         entityManager.flush();
 
@@ -167,7 +187,7 @@ class MessageRepositoryTest {
         Sujet sujet = creerSujet();
         Debat debat = creerDebat(humain, sujet);
 
-        Message msgHumain = creerMessage(debat, humain, "Parole humain", LocalDateTime.now());
+        creerMessage(debat, humain, "Parole humain", LocalDateTime.now());
         creerMessage(debat, bot, "Parole bot", LocalDateTime.now().plusSeconds(1));
 
         entityManager.flush();
