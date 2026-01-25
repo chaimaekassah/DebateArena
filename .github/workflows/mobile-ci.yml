@@ -11,42 +11,20 @@ on:
       - 'mobile/**'
 
 jobs:
-  build-android:
+  test-mobile:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-<<<<<<< HEAD
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-=======
         uses: actions/checkout@v6.0.2
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5.1.0
->>>>>>> origin/feature/tests_mobile_chatbot
         with:
           distribution: 'temurin'
           java-version: '17'
 
       - name: Set up Node.js
-<<<<<<< HEAD
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: mobile/package-lock.json
-
-      - name: Install React Native dependencies
-        working-directory: mobile
-        run: npm ci
-
-      - name: Lint React Native code
-        working-directory: mobile
-        run: npm run lint
-=======
         uses: actions/setup-node@v6.1.0
         with:
           node-version: '18'
@@ -61,62 +39,12 @@ jobs:
       - name: Lint React Native code
         working-directory: mobile
         run: yarn lint
->>>>>>> origin/feature/tests_mobile_chatbot
         continue-on-error: true
 
       - name: Run React Native tests
         working-directory: mobile
-<<<<<<< HEAD
-        run: npm test -- --watchAll=false
-=======
         run: yarn test --watchAll=false
->>>>>>> origin/feature/tests_mobile_chatbot
-        continue-on-error: true
 
       - name: Type check (if using TypeScript)
         working-directory: mobile
-<<<<<<< HEAD
-        run: npm run tsc --noEmit
-        continue-on-error: true
-
-      - name: Make gradlew executable
-        run: chmod +x mobile/android/gradlew
-
-      - name: Build Android APK (Debug)
-        if: github.ref != 'refs/heads/develop'
-        working-directory: mobile/android
-        run: ./gradlew assembleDebug
-
-      - name: Build Android APK (Release)
-        if: github.ref == 'refs/heads/develop'
-        working-directory: mobile/android
-        run: ./gradlew assembleRelease
-        env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-
-      - name: Upload Android APK (Debug)
-        if: github.ref != 'refs/heads/develop'
-        uses: actions/upload-artifact@v3
-        with:
-          name: android-apk-debug-${{ github.sha }}
-          path: mobile/android/app/build/outputs/apk/debug/*.apk
-          retention-days: 7
-
-      - name: Upload Android APK (Release)
-        if: github.ref == 'refs/heads/develop'
-        uses: actions/upload-artifact@v3
-        with:
-          name: android-apk-release-${{ github.sha }}
-          path: mobile/android/app/build/outputs/apk/release/*.apk
-          retention-days: 30
-
-      - name: Build summary
-        run: |
-          echo "✅ Build React Native Android terminé avec succès!"
-          echo "📱 Branche: ${{ github.ref_name }}"
-          echo "💾 APK sauvegardé dans les artifacts"
-=======
         run: yarn tsc --noEmit
-        continue-on-error: true
->>>>>>> origin/feature/tests_mobile_chatbot

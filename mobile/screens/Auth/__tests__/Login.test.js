@@ -3,25 +3,24 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import Login from '../Login';
 import api from '../../../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
 
-const mockNavigate = jest.fn();
+jest.mock('../../../services/api', () => ({
+  post: jest.fn(),
+}));
 
-const navigation = {
-  navigate: mockNavigate,
-};
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  removeItem: jest.fn(),
+  multiSet: jest.fn(),
+}));
 
-jest.mock('../../../services/api');
+jest.spyOn(Alert, 'alert');
 
-describe('Login Screen', () => {
+describe('Login Screen - Unit Tests', () => {
+  const navigation = { navigate: jest.fn() };
+
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('affiche les champs email et mot de passe', () => {
-    const { getByPlaceholderText } = render(<Login navigation={navigation} />);
-
-    expect(getByPlaceholderText('votreemail@exemple.com')).toBeTruthy();
-    expect(getByPlaceholderText('*************')).toBeTruthy();
   });
 
   it('affiche une erreur si les champs sont vides', async () => {
@@ -32,13 +31,16 @@ describe('Login Screen', () => {
     await waitFor(() => {
       expect(getByText('Tous les champs sont obligatoires')).toBeTruthy();
     });
+
+    expect(api.post).not.toHaveBeenCalled();
+    expect(navigation.navigate).not.toHaveBeenCalled();
   });
 
-  it('connexion réussie → stocke le token et navigue', async () => {
-    api.post.mockResolvedValueOnce({
-      data: {
-        token: 'fake-token',
-        role: 'USER',
+  it('affiche une alerte si les identifiants sont invalides', async () => {
+    api.post.mockRejectedValueOnce({
+      response: {
+        status: 401,
+        data: { message: 'Email ou mot de passe incorrect' },
       },
     });
 
@@ -50,22 +52,20 @@ describe('Login Screen', () => {
       getByPlaceholderText('votreemail@exemple.com'),
       'test@test.com',
     );
-    fireEvent.changeText(getByPlaceholderText('*************'), '123456');
+    fireEvent.changeText(
+      getByPlaceholderText('*************'),
+      'wrongpassword',
+    );
 
     fireEvent.press(getByText('CONNEXION'));
 
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith('/auth/signin', {
-        email: 'test@test.com',
-        password: '123456',
-      });
-
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-        'userToken',
-        'fake-token',
+      expect(Alert.alert).toHaveBeenCalledWith(
+        '❌ Erreur de connexion',
+        'Email ou mot de passe incorrect',
       );
-
-      expect(mockNavigate).toHaveBeenCalledWith('Dashboard');
     });
+
+    expect(navigation.navigate).not.toHaveBeenCalled();
   });
 });

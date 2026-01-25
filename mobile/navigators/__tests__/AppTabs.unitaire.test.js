@@ -23,20 +23,16 @@ jest.mock('@expo/vector-icons', () => ({
 // ✅ Mock des écrans
 jest.mock('../../screens/UserInformation/Dashboard', () => () => null);
 jest.mock('../../screens/UserInformation/Profil', () => () => null);
-jest.mock('../../screens/Debate/StartDebate', () => () => null);
+jest.mock('../../screens/Debate/NewDebate', () => () => null);
 
-describe('AppTabs - Test Unitaire', () => {
+describe('AppTabs - Navigation par onglets', () => {
   beforeEach(() => {
-    mockScreens.length = 0; // reset
+    mockScreens.length = 0; // reset avant chaque test
   });
 
-  it('déclare correctement les tabs', () => {
-    render(<AppTabs />); // ✅ OBLIGATOIRE
+  it('déclare correctement les tabs Accueil, Débat et Profil', () => {
+    render(<AppTabs />);
 
-    expect(mockScreens).toEqual([
-      'Dashboard',
-      'StartDebate',
-      'Profile',
-    ]);
+    expect(mockScreens).toEqual(['Accueil', 'Débat', 'Profil']);
   });
 });

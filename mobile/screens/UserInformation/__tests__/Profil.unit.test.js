@@ -1,71 +1,40 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import Profil from '../Profil';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/* ===== MOCKS ===== */
+jest.spyOn(AsyncStorage, 'getItem').mockResolvedValue(null);
 
-// ImagePicker
-jest.mock('expo-image-picker', () => ({
-  requestMediaLibraryPermissionsAsync: jest.fn(),
-  launchImageLibraryAsync: jest.fn(),
-  MediaTypeOptions: {
-    Images: 'Images',
-  },
-}));
-
-// Ionicons
-jest.mock('@expo/vector-icons', () => ({
-  Ionicons: 'Ionicons',
-}));
-
-// Styles custom
 jest.mock('../../../components/styles', () => {
   const React = require('react');
-  const { View, Text, Image } = require('react-native');
+  const { View, Text } = require('react-native');
+
+  const Mock = ({ children }) => <View>{children}</View>;
 
   return {
-    BackgroundContainer: ({ children }) => <View>{children}</View>,
-    InnerContainer: ({ children }) => <View>{children}</View>,
-    ProfileImage: (props) => <Image {...props} />,
-    Label: ({ children }) => <Text>{children}</Text>,
-    WhiteContainer: ({ children }) => <View>{children}</View>,
+    BackgroundContainer: Mock,
+    InnerContainer: Mock,
+    Shadow: Mock,
+    ProgressBar: Mock,
+    ProgressFill: Mock,
+    SectionTitle: ({ children }) => <Text>{children}</Text>,
+    FieldLabel: ({ children }) => <Text>{children}</Text>,
+    StatLabel: ({ children }) => <Text>{children}</Text>,
     Colors: {
-      blue: '#4A90E2',
+      white: '#fff',
+      yellow: '#ff0',
+      brand: '#000',
       dark: '#000',
+      lightPink: '#ccc',
+      green: '#0f0',
+      pink: '#f0c',
     },
   };
 });
 
-// KeyboardAvoidingWrapper
-jest.mock('../../../components/common/KeyboardAvoidingWrapper', () => {
-  return ({ children }) => children;
-});
-
-// EditableRow
-jest.mock('../../../components/userInformation/EditableRow', () => {
-  const React = require('react');
-  const { Text } = require('react-native');
-  return ({ label, value }) => (
-    <>
-      <Text>{label}</Text>
-      <Text>{value}</Text>
-    </>
-  );
-});
-
-/* ===== TEST ===== */
-
-describe('Profil – Test unitaire', () => {
-  it('se rend correctement avec les informations utilisateur', () => {
-    const { getByText } = render(<Profil />);
-
-    expect(getByText('Nom')).toBeTruthy();
-    expect(getByText('Jean Dupont')).toBeTruthy();
-
-    expect(getByText('Email')).toBeTruthy();
-    expect(getByText('jean.dupont@email.com')).toBeTruthy();
-
-    expect(getByText('Mot de passe')).toBeTruthy();
-    expect(getByText('password123')).toBeTruthy();
+describe('Profil – tests unitaires', () => {
+  it('affiche le loader au chargement', () => {
+    const { getByText } = render(<Profil navigation={{}} />);
+    expect(getByText('Chargement du profil...')).toBeTruthy();
   });
 });

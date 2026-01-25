@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ScrollView,
   View,
@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  TextInput
+  TextInput,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -41,10 +41,21 @@ import {
   SectionTitle,
   FieldLabel,
   FieldContainer,
-  FieldHeader
+  FieldHeader,
 } from '../../components/styles';
 
-const { dark, yellow, blue, lightPink, pink, white, grey, brand, green, darkLight } = Colors;
+const {
+  dark,
+  yellow,
+  blue,
+  lightPink,
+  pink,
+  white,
+  grey,
+  brand,
+  green,
+  darkLight,
+} = Colors;
 
 const BASE_URL = 'http://192.168.11.169:8080';
 
@@ -55,101 +66,117 @@ const Profil = ({ navigation }) => {
     prenom: '',
     email: '',
     role: '',
-    imagePath: null
+    imagePath: null,
   });
 
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [uploading, setUploading] = useState(false);
-  
+
   // États pour les modales
   const [editNomModal, setEditNomModal] = useState(false);
   const [editPrenomModal, setEditPrenomModal] = useState(false);
-  
+
   // États pour les valeurs d'édition
   const [newNom, setNewNom] = useState('');
   const [newPrenom, setNewPrenom] = useState('');
-  
+
   // États pour les données supplémentaires
   const [stats, setStats] = useState({
     totalDebats: 0,
     debatsGagnes: 0,
     tauxReussite: 0,
-    niveau: "DÉBUTANT",
-    score: 0
+    niveau: 'DÉBUTANT',
+    score: 0,
   });
+  const isMounted = useRef(true);
 
   // Fonction utilitaire pour construire l'URL complète de l'image
   const buildImageUrl = (imagePath) => {
     if (!imagePath) return null;
-    
+
     // Si c'est déjà une URL complète
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
-    
+
     // Si c'est un chemin de fichier local
     if (imagePath.startsWith('file://')) {
       return imagePath;
     }
-    
+
     // Si c'est un chemin relatif
-    if (imagePath.startsWith('/uploads/') || imagePath.startsWith('/images/') || imagePath.startsWith('/profile/')) {
+    if (
+      imagePath.startsWith('/uploads/') ||
+      imagePath.startsWith('/images/') ||
+      imagePath.startsWith('/profile/')
+    ) {
       return `${BASE_URL}${imagePath}`;
     }
-    
+
     // Si c'est juste un nom de fichier
     return `${BASE_URL}/uploads/${imagePath}`;
   };
 
   useEffect(() => {
+    isMounted.current = true;
+
     loadUserData();
+
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   const loadUserData = async () => {
     try {
-      setLoading(true);
-      
+      if (isMounted.current) {
+        setLoading(true);
+      }
+
       // Vérifiez d'abord le token
       const token = await AsyncStorage.getItem('userToken');
-      
+
       if (!token) {
-        Alert.alert("Erreur", "Vous devez être connecté pour voir votre profil");
+        Alert.alert(
+          'Erreur',
+          'Vous devez être connecté pour voir votre profil',
+        );
         navigation.replace('Login');
         return;
       }
 
       // Récupérer les données du profil depuis l'API
       const response = await api.get('/me');
-      
+
       if (response.data) {
         // Construire l'URL de l'image
         const imageUrl = buildImageUrl(
-          response.data.imagePath || 
-          response.data.imageUrl || 
-          response.data.profileImage || 
-          response.data.photoUrl ||
-          response.data.image
+          response.data.imagePath ||
+            response.data.imageUrl ||
+            response.data.profileImage ||
+            response.data.photoUrl ||
+            response.data.image,
         );
-        
+
         setUser({
           id: response.data.id || null,
           nom: response.data.nom || '',
           prenom: response.data.prenom || '',
           email: response.data.email || '',
           role: response.data.role || 'UTILISATEUR',
-          imagePath: imageUrl
+          imagePath: imageUrl,
         });
-        
+
         // Sauvegarder dans AsyncStorage
         await AsyncStorage.multiSet([
           ['nom', response.data.nom || ''],
           ['prenom', response.data.prenom || ''],
           ['email', response.data.email || ''],
           ['userId', response.data.id?.toString() || ''],
-          ['profileImage', imageUrl || '']
+          ['profileImage', imageUrl || ''],
         ]);
-        
+
         // Charger les statistiques
         try {
           const dashboardResponse = await api.get('/dashboard');
@@ -158,8 +185,8 @@ const Profil = ({ navigation }) => {
               totalDebats: dashboardResponse.data.totalDebats || 0,
               debatsGagnes: dashboardResponse.data.debatsGagnes || 0,
               tauxReussite: dashboardResponse.data.tauxReussite || 0,
-              niveau: dashboardResponse.data.niveau || "DÉBUTANT",
-              score: dashboardResponse.data.score || 0
+              niveau: dashboardResponse.data.niveau || 'DÉBUTANT',
+              score: dashboardResponse.data.score || 0,
             });
           }
         } catch (dashboardError) {
@@ -168,39 +195,42 @@ const Profil = ({ navigation }) => {
       }
     } catch (error) {
       // Charger depuis AsyncStorage en cas d'erreur
-      const nom = await AsyncStorage.getItem('nom') || 'Utilisateur';
-      const prenom = await AsyncStorage.getItem('prenom') || '';
-      const email = await AsyncStorage.getItem('email') || '';
-      const userId = await AsyncStorage.getItem('userId') || '';
+      const nom = (await AsyncStorage.getItem('nom')) || 'Utilisateur';
+      const prenom = (await AsyncStorage.getItem('prenom')) || '';
+      const email = (await AsyncStorage.getItem('email')) || '';
+      const userId = (await AsyncStorage.getItem('userId')) || '';
       const profileImage = await AsyncStorage.getItem('profileImage');
-      
+
       setUser({
         id: userId,
         nom,
         prenom,
         email,
         role: 'UTILISATEUR',
-        imagePath: profileImage
+        imagePath: profileImage,
       });
-      
+
       // Charger les stats depuis AsyncStorage
       const score = parseInt(await AsyncStorage.getItem('score')) || 0;
-      const totalDebats = parseInt(await AsyncStorage.getItem('totalDebats')) || 0;
-      const debatsGagnes = parseInt(await AsyncStorage.getItem('debatsGagnes')) || 0;
-      const tauxReussite = totalDebats > 0 ? Math.round((debatsGagnes / totalDebats) * 100) : 0;
-      
+      const totalDebats =
+        parseInt(await AsyncStorage.getItem('totalDebats')) || 0;
+      const debatsGagnes =
+        parseInt(await AsyncStorage.getItem('debatsGagnes')) || 0;
+      const tauxReussite =
+        totalDebats > 0 ? Math.round((debatsGagnes / totalDebats) * 100) : 0;
+
       setStats({
         totalDebats,
         debatsGagnes,
         tauxReussite,
-        niveau: "DÉBUTANT",
-        score
+        niveau: 'DÉBUTANT',
+        score,
       });
-      
+
       Alert.alert(
         'Erreur',
         'Impossible de charger les données du profil. Affichage des données locales.',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       );
     } finally {
       setLoading(false);
@@ -210,45 +240,47 @@ const Profil = ({ navigation }) => {
   const updateUserProfile = async () => {
     try {
       setUpdating(true);
-      
+
       // CRÉEZ UN FormData COMME DANS SIGNUP
       const formData = new FormData();
-      
+
       // Ajoutez les champs (comme dans signup.js)
       formData.append('nom', newNom.trim() || user.nom);
       formData.append('prenom', newPrenom.trim() || user.prenom);
-      
+
       // UTILISEZ L'ENDPOINT CORRECT
       const response = await api.put('/me', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
+
       if (response.data) {
         // Construire l'URL de l'image si elle est retournée
-        const imageUrl = response.data.imagePath ? buildImageUrl(response.data.imagePath) : user.imagePath;
-        
+        const imageUrl = response.data.imagePath
+          ? buildImageUrl(response.data.imagePath)
+          : user.imagePath;
+
         // Mettez à jour l'état
-        setUser(prev => ({
+        setUser((prev) => ({
           ...prev,
           nom: response.data.nom,
           prenom: response.data.prenom,
-          imagePath: imageUrl
+          imagePath: imageUrl,
         }));
-        
+
         // Sauvegardez dans AsyncStorage
         await AsyncStorage.multiSet([
           ['nom', response.data.nom],
           ['prenom', response.data.prenom],
         ]);
-        
+
         Alert.alert('Succès', 'Profil mis à jour avec succès !');
-        
+
         // Fermez les modales
         setEditNomModal(false);
         setEditPrenomModal(false);
-        
+
         // Réinitialiser les valeurs
         setNewNom('');
         setNewPrenom('');
@@ -261,19 +293,19 @@ const Profil = ({ navigation }) => {
             nom: newNom.trim() || user.nom,
             prenom: newPrenom.trim() || user.prenom,
           });
-          
+
           if (jsonResponse.data) {
-            setUser(prev => ({
+            setUser((prev) => ({
               ...prev,
               nom: jsonResponse.data.nom,
-              prenom: jsonResponse.data.prenom
+              prenom: jsonResponse.data.prenom,
             }));
-            
+
             await AsyncStorage.multiSet([
               ['nom', jsonResponse.data.nom],
               ['prenom', jsonResponse.data.prenom],
             ]);
-            
+
             Alert.alert('Succès', 'Profil mis à jour avec succès !');
             setEditNomModal(false);
             setEditPrenomModal(false);
@@ -285,10 +317,11 @@ const Profil = ({ navigation }) => {
           // Continuer avec l'erreur originale
         }
       }
-      
+
       Alert.alert(
-        'Erreur', 
-        error.response?.data?.message || 'Impossible de mettre à jour le profil.'
+        'Erreur',
+        error.response?.data?.message ||
+          'Impossible de mettre à jour le profil.',
       );
     } finally {
       setUpdating(false);
@@ -297,10 +330,14 @@ const Profil = ({ navigation }) => {
 
   const pickImage = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
       if (status !== 'granted') {
-        Alert.alert('Permission requise', 'Nous avons besoin de votre permission pour accéder à vos photos.');
+        Alert.alert(
+          'Permission requise',
+          'Nous avons besoin de votre permission pour accéder à vos photos.',
+        );
         return;
       }
 
@@ -322,9 +359,12 @@ const Profil = ({ navigation }) => {
   const takePhoto = async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      
+
       if (status !== 'granted') {
-        Alert.alert('Permission requise', 'Nous avons besoin de votre permission pour utiliser la caméra.');
+        Alert.alert(
+          'Permission requise',
+          'Nous avons besoin de votre permission pour utiliser la caméra.',
+        );
         return;
       }
 
@@ -345,20 +385,20 @@ const Profil = ({ navigation }) => {
   const uploadImage = async (imageUri) => {
     try {
       setUploading(true);
-      
+
       const formData = new FormData();
-      
+
       // Créez un nom de fichier unique
       const timestamp = Date.now();
       const filename = `profile_${timestamp}.jpg`;
-      
+
       // Ajoutez le fichier au FormData
       formData.append('image', {
         uri: imageUri,
         name: filename,
         type: 'image/jpeg',
       });
-      
+
       // Essayez différents endpoints
       let response;
       try {
@@ -383,34 +423,36 @@ const Profil = ({ navigation }) => {
           });
         }
       }
-      
+
       if (response.data) {
         // Gérer différentes réponses du backend
-        const imageData = response.data.imagePath || 
-                         response.data.imageUrl || 
-                         response.data.url || 
-                         response.data.profileImage ||
-                         response.data.image ||
-                         response.data.photoUrl;
-        
+        const imageData =
+          response.data.imagePath ||
+          response.data.imageUrl ||
+          response.data.url ||
+          response.data.profileImage ||
+          response.data.image ||
+          response.data.photoUrl;
+
         // Construire l'URL complète
         const imageUrl = buildImageUrl(imageData);
-        
+
         // Mettez à jour l'état
-        setUser(prev => ({
+        setUser((prev) => ({
           ...prev,
-          imagePath: imageUrl
+          imagePath: imageUrl,
         }));
-        
+
         // Sauvegarder dans AsyncStorage
         await AsyncStorage.setItem('profileImage', imageUrl || '');
-        
+
         Alert.alert('Succès', 'Photo de profil mise à jour !');
       }
     } catch (error) {
       Alert.alert(
-        'Erreur', 
-        error.response?.data?.message || 'Impossible de mettre à jour la photo.'
+        'Erreur',
+        error.response?.data?.message ||
+          'Impossible de mettre à jour la photo.',
       );
     } finally {
       setUploading(false);
@@ -435,7 +477,7 @@ const Profil = ({ navigation }) => {
           style: 'cancel',
         },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 
@@ -461,84 +503,108 @@ const Profil = ({ navigation }) => {
           },
         },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 
   if (loading) {
     return (
-      <BackgroundContainer source={require("../../assets/img/fond.png")} resizeMode="cover">
-        <InnerContainer style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
+      <BackgroundContainer
+        source={require('../../assets/img/fond.png')}
+        resizeMode="cover"
+      >
+        <InnerContainer
+          style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}
+        >
           <ActivityIndicator size="large" color={white} />
-          <Label style={{ marginTop: 20, fontSize: 16 }}>Chargement du profil...</Label>
+          <Label style={{ marginTop: 20, fontSize: 16 }}>
+            Chargement du profil...
+          </Label>
         </InnerContainer>
       </BackgroundContainer>
     );
   }
 
   return (
-    <BackgroundContainer 
-      source={require("../../assets/img/fond.png")} 
+    <BackgroundContainer
+      source={require('../../assets/img/fond.png')}
       resizeMode="cover"
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
         <ScrollView showsVerticalScrollIndicator={false}>
           <InnerContainer style={{ paddingBottom: 30 }}>
-            
             {/* Header avec bouton retour */}
-            <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
+            <View
+              style={{
+                width: '100%',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 20,
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={{ padding: 5 }}
+              >
                 <Ionicons name="arrow-back" size={24} color={white} />
               </TouchableOpacity>
-              
+
               <Label style={{ fontSize: 24, fontWeight: 'bold' }}>
                 Mon Profil
               </Label>
-              
+
               <View style={{ width: 24 }} />
             </View>
 
             {/* Section Photo de profil */}
-            <View style={{ 
-              alignItems: 'center',
-              marginBottom: 30,
-              width: '100%'
-            }}>
+            <View
+              style={{
+                alignItems: 'center',
+                marginBottom: 30,
+                width: '100%',
+              }}
+            >
               <View style={{ position: 'relative', marginBottom: 20 }}>
                 {user.imagePath ? (
                   <Image
                     source={{ uri: user.imagePath }}
-                    style={{ 
-                      width: 140, 
-                      height: 140, 
+                    style={{
+                      width: 140,
+                      height: 140,
                       borderRadius: 70,
                       borderWidth: 4,
                       borderColor: yellow,
-                      backgroundColor: '#f0f0f0'
+                      backgroundColor: '#f0f0f0',
                     }}
                     resizeMode="cover"
                   />
                 ) : (
-                  <View style={{ 
-                    width: 140, 
-                    height: 140, 
-                    borderRadius: 70, 
-                    backgroundColor: lightPink,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    borderWidth: 4,
-                    borderColor: yellow
-                  }}>
-                    <Text style={{ fontSize: 48, color: dark, fontWeight: 'bold' }}>
-                      {user.prenom?.charAt(0) || ''}{user.nom?.charAt(0) || ''}
+                  <View
+                    style={{
+                      width: 140,
+                      height: 140,
+                      borderRadius: 70,
+                      backgroundColor: lightPink,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderWidth: 4,
+                      borderColor: yellow,
+                    }}
+                  >
+                    <Text
+                      style={{ fontSize: 48, color: dark, fontWeight: 'bold' }}
+                    >
+                      {user.prenom?.charAt(0) || ''}
+                      {user.nom?.charAt(0) || ''}
                     </Text>
                   </View>
                 )}
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   onPress={showImagePickerOptions}
                   disabled={uploading}
                   style={{
@@ -549,7 +615,7 @@ const Profil = ({ navigation }) => {
                     borderRadius: 20,
                     padding: 10,
                     borderWidth: 3,
-                    borderColor: white
+                    borderColor: white,
                   }}
                 >
                   {uploading ? (
@@ -559,214 +625,284 @@ const Profil = ({ navigation }) => {
                   )}
                 </TouchableOpacity>
               </View>
-              
-              <Text style={{ 
-                fontSize: 28, 
-                fontWeight: 'bold', 
-                color: white, 
-                marginBottom: 5,
-                textAlign: 'center'
-              }}>
+
+              <Text
+                style={{
+                  fontSize: 28,
+                  fontWeight: 'bold',
+                  color: white,
+                  marginBottom: 5,
+                  textAlign: 'center',
+                }}
+              >
                 {user.prenom} {user.nom}
               </Text>
-              
-              <Text style={{ 
-                fontSize: 16, 
-                color: lightPink, 
-                marginBottom: 10,
-                textAlign: 'center'
-              }}>
+
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: lightPink,
+                  marginBottom: 10,
+                  textAlign: 'center',
+                }}
+              >
                 {user.email}
               </Text>
             </View>
 
             {/* Section Informations personnelles */}
-            <Shadow style={{ 
-              backgroundColor: white,
-              borderRadius: 38,
-              padding: 25,
-              marginBottom: 20,
-              width: '100%'
-            }}>
+            <Shadow
+              style={{
+                backgroundColor: white,
+                borderRadius: 38,
+                padding: 25,
+                marginBottom: 20,
+                width: '100%',
+              }}
+            >
               <SectionTitle>Informations Personnelles</SectionTitle>
-              
+
               <FieldContainer>
                 <FieldHeader>
                   <FieldLabel>Nom</FieldLabel>
-                  <TouchableOpacity onPress={() => {
-                    setNewNom(user.nom);
-                    setEditNomModal(true);
-                  }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setNewNom(user.nom);
+                      setEditNomModal(true);
+                    }}
+                  >
                     <Ionicons name="create-outline" size={20} color={brand} />
                   </TouchableOpacity>
                 </FieldHeader>
-                <View style={{ 
-                  backgroundColor: '#F8F9FA',
-                  padding: 15,
-                  borderRadius: 15,
-                  borderWidth: 1,
-                  borderColor: '#E0E0E0',
-                  marginBottom: 20
-                }}>
-                  <StatLabel style={{ fontSize: 16 }}>{user.nom || 'Non défini'}</StatLabel>
+                <View
+                  style={{
+                    backgroundColor: '#F8F9FA',
+                    padding: 15,
+                    borderRadius: 15,
+                    borderWidth: 1,
+                    borderColor: '#E0E0E0',
+                    marginBottom: 20,
+                  }}
+                >
+                  <StatLabel style={{ fontSize: 16 }}>
+                    {user.nom || 'Non défini'}
+                  </StatLabel>
                 </View>
               </FieldContainer>
-              
+
               <FieldContainer>
                 <FieldHeader>
                   <FieldLabel>Prénom</FieldLabel>
-                  <TouchableOpacity onPress={() => {
-                    setNewPrenom(user.prenom);
-                    setEditPrenomModal(true);
-                  }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setNewPrenom(user.prenom);
+                      setEditPrenomModal(true);
+                    }}
+                  >
                     <Ionicons name="create-outline" size={20} color={brand} />
                   </TouchableOpacity>
                 </FieldHeader>
-                <View style={{ 
-                  backgroundColor: '#F8F9FA',
-                  padding: 15,
-                  borderRadius: 15,
-                  borderWidth: 1,
-                  borderColor: '#E0E0E0',
-                  marginBottom: 20
-                }}>
-                  <StatLabel style={{ fontSize: 16 }}>{user.prenom || 'Non défini'}</StatLabel>
+                <View
+                  style={{
+                    backgroundColor: '#F8F9FA',
+                    padding: 15,
+                    borderRadius: 15,
+                    borderWidth: 1,
+                    borderColor: '#E0E0E0',
+                    marginBottom: 20,
+                  }}
+                >
+                  <StatLabel style={{ fontSize: 16 }}>
+                    {user.prenom || 'Non défini'}
+                  </StatLabel>
                 </View>
               </FieldContainer>
-              
+
               <FieldContainer>
                 <FieldHeader>
                   <FieldLabel>Email</FieldLabel>
                 </FieldHeader>
-                <View style={{ 
-                  backgroundColor: '#F8F9FA',
-                  padding: 15,
-                  borderRadius: 15,
-                  borderWidth: 1,
-                  borderColor: '#E0E0E0',
-                  marginBottom: 10
-                }}>
-                  <StatLabel style={{ fontSize: 16 }}>{user.email || 'Non défini'}</StatLabel>
+                <View
+                  style={{
+                    backgroundColor: '#F8F9FA',
+                    padding: 15,
+                    borderRadius: 15,
+                    borderWidth: 1,
+                    borderColor: '#E0E0E0',
+                    marginBottom: 10,
+                  }}
+                >
+                  <StatLabel style={{ fontSize: 16 }}>
+                    {user.email || 'Non défini'}
+                  </StatLabel>
                 </View>
               </FieldContainer>
             </Shadow>
 
             {/* Section Statistiques */}
-            <Shadow style={{ 
-              backgroundColor: white,
-              borderRadius: 38,
-              padding: 25,
-              marginBottom: 20,
-              width: '100%'
-            }}>
+            <Shadow
+              style={{
+                backgroundColor: white,
+                borderRadius: 38,
+                padding: 25,
+                marginBottom: 20,
+                width: '100%',
+              }}
+            >
               <SectionTitle>Mes Statistiques</SectionTitle>
-              
-              <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 25 }}>
+
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-around',
+                  marginBottom: 25,
+                }}
+              >
                 <View style={{ alignItems: 'center' }}>
-                  <View style={{ 
-                    width: 80, 
-                    height: 80, 
-                    borderRadius: 40, 
-                    backgroundColor: brand,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginBottom: 12,
-                    borderWidth: 3,
-                    borderColor: white,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 4
-                  }}>
-                    <Text style={{ fontSize: 24, fontWeight: 'bold', color: white }}>
+                  <View
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 40,
+                      backgroundColor: brand,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginBottom: 12,
+                      borderWidth: 3,
+                      borderColor: white,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 4,
+                      elevation: 4,
+                    }}
+                  >
+                    <Text
+                      style={{ fontSize: 24, fontWeight: 'bold', color: white }}
+                    >
                       {stats.totalDebats}
                     </Text>
                   </View>
-                  <StatLabel style={{ textAlign: 'center', fontSize: 14 }}>Débats</StatLabel>
+                  <StatLabel style={{ textAlign: 'center', fontSize: 14 }}>
+                    Débats
+                  </StatLabel>
                 </View>
-                
+
                 <View style={{ alignItems: 'center' }}>
-                  <View style={{ 
-                    width: 80, 
-                    height: 80, 
-                    borderRadius: 40, 
-                    backgroundColor: yellow,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginBottom: 12,
-                    borderWidth: 3,
-                    borderColor: white,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 4
-                  }}>
-                    <Text style={{ fontSize: 24, fontWeight: 'bold', color: dark }}>
+                  <View
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 40,
+                      backgroundColor: yellow,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginBottom: 12,
+                      borderWidth: 3,
+                      borderColor: white,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 4,
+                      elevation: 4,
+                    }}
+                  >
+                    <Text
+                      style={{ fontSize: 24, fontWeight: 'bold', color: dark }}
+                    >
                       {stats.debatsGagnes}
                     </Text>
                   </View>
-                  <StatLabel style={{ textAlign: 'center', fontSize: 14 }}>Victoires</StatLabel>
+                  <StatLabel style={{ textAlign: 'center', fontSize: 14 }}>
+                    Victoires
+                  </StatLabel>
                 </View>
-                
+
                 <View style={{ alignItems: 'center' }}>
-                  <View style={{ 
-                    width: 80, 
-                    height: 80, 
-                    borderRadius: 40, 
-                    backgroundColor: green,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginBottom: 12,
-                    borderWidth: 3,
-                    borderColor: white,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 4
-                  }}>
-                    <Text style={{ fontSize: 24, fontWeight: 'bold', color: white }}>
+                  <View
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 40,
+                      backgroundColor: green,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginBottom: 12,
+                      borderWidth: 3,
+                      borderColor: white,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 4,
+                      elevation: 4,
+                    }}
+                  >
+                    <Text
+                      style={{ fontSize: 24, fontWeight: 'bold', color: white }}
+                    >
                       {stats.tauxReussite}%
                     </Text>
                   </View>
-                  <StatLabel style={{ textAlign: 'center', fontSize: 14 }}>Réussite</StatLabel>
+                  <StatLabel style={{ textAlign: 'center', fontSize: 14 }}>
+                    Réussite
+                  </StatLabel>
                 </View>
               </View>
-              
+
               <View style={{ marginBottom: 20 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    marginBottom: 8,
+                  }}
+                >
                   <StatLabel style={{ fontSize: 16 }}>Niveau</StatLabel>
-                  <StatLabel style={{ color: brand, fontWeight: 'bold', fontSize: 16 }}>{stats.niveau}</StatLabel>
+                  <StatLabel
+                    style={{ color: brand, fontWeight: 'bold', fontSize: 16 }}
+                  >
+                    {stats.niveau}
+                  </StatLabel>
                 </View>
                 <ProgressBar>
                   <ProgressFill style={{ width: `${stats.tauxReussite}%` }} />
                 </ProgressBar>
               </View>
-              
-              <View style={{ 
-                flexDirection: 'row', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                backgroundColor: '#F8F9FA',
-                padding: 15,
-                borderRadius: 15,
-                borderWidth: 1,
-                borderColor: '#E0E0E0'
-              }}>
+
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  backgroundColor: '#F8F9FA',
+                  padding: 15,
+                  borderRadius: 15,
+                  borderWidth: 1,
+                  borderColor: '#E0E0E0',
+                }}
+              >
                 <StatLabel style={{ fontSize: 16 }}>Score total</StatLabel>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Ionicons name="trophy" size={20} color={yellow} style={{ marginRight: 8 }} />
-                  <StatLabel style={{ fontWeight: 'bold', color: dark, fontSize: 18 }}>{stats.score} points</StatLabel>
+                  <Ionicons
+                    name="trophy"
+                    size={20}
+                    color={yellow}
+                    style={{ marginRight: 8 }}
+                  />
+                  <StatLabel
+                    style={{ fontWeight: 'bold', color: dark, fontSize: 18 }}
+                  >
+                    {stats.score} points
+                  </StatLabel>
                 </View>
               </View>
             </Shadow>
 
             {/* Actions */}
-            <View style={{ width: '100%', alignItems: 'center', marginTop: 10 }}>
-              
-              <TouchableOpacity 
+            <View
+              style={{ width: '100%', alignItems: 'center', marginTop: 10 }}
+            >
+              <TouchableOpacity
                 onPress={handleLogout}
                 style={{
                   backgroundColor: white,
@@ -781,26 +917,28 @@ const Profil = ({ navigation }) => {
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.1,
                   shadowRadius: 4,
-                  elevation: 4
+                  elevation: 4,
                 }}
               >
                 <Text style={{ color: pink, fontSize: 18, fontWeight: 'bold' }}>
-                  <Ionicons name="log-out-outline" size={18} />
-                  {' '}Déconnexion
+                  <Ionicons name="log-out-outline" size={18} /> Déconnexion
                 </Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 onPress={loadUserData}
                 style={{ marginTop: 10, padding: 10 }}
               >
                 <Text style={{ color: yellow, fontSize: 14 }}>
-                  <Ionicons name="refresh" size={14} style={{ marginRight: 5 }} /> 
+                  <Ionicons
+                    name="refresh"
+                    size={14}
+                    style={{ marginRight: 5 }}
+                  />
                   Rafraîchir les données
                 </Text>
               </TouchableOpacity>
             </View>
-
           </InnerContainer>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -812,20 +950,32 @@ const Profil = ({ navigation }) => {
         animationType="slide"
         onRequestClose={() => setEditNomModal(false)}
       >
-        <View style={{ 
-          flex: 1, 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)' 
-        }}>
-          <View style={{ 
-            backgroundColor: white,
-            borderRadius: 20,
-            padding: 25,
-            width: '85%',
-            alignItems: 'center'
-          }}>
-            <Text style={{ fontSize: 22, marginBottom: 20, color: dark, fontWeight: 'bold', textAlign: 'center' }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: white,
+              borderRadius: 20,
+              padding: 25,
+              width: '85%',
+              alignItems: 'center',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 22,
+                marginBottom: 20,
+                color: dark,
+                fontWeight: 'bold',
+                textAlign: 'center',
+              }}
+            >
               Modifier le nom
             </Text>
             <TextInput
@@ -842,7 +992,7 @@ const Profil = ({ navigation }) => {
                 paddingHorizontal: 15,
                 fontSize: 16,
                 marginBottom: 25,
-                backgroundColor: '#F8F9FA'
+                backgroundColor: '#F8F9FA',
               }}
             />
             <View style={{ flexDirection: 'row', width: '100%', gap: 15 }}>
@@ -858,10 +1008,14 @@ const Profil = ({ navigation }) => {
                   alignItems: 'center',
                   backgroundColor: '#f0f0f0',
                   borderWidth: 1,
-                  borderColor: '#ddd'
+                  borderColor: '#ddd',
                 }}
               >
-                <Text style={{ fontWeight: 'bold', color: '#666', fontSize: 16 }}>Annuler</Text>
+                <Text
+                  style={{ fontWeight: 'bold', color: '#666', fontSize: 16 }}
+                >
+                  Annuler
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={updateUserProfile}
@@ -873,13 +1027,17 @@ const Profil = ({ navigation }) => {
                   alignItems: 'center',
                   backgroundColor: brand,
                   borderWidth: 1,
-                  borderColor: brand
+                  borderColor: brand,
                 }}
               >
                 {updating ? (
                   <ActivityIndicator size="small" color={white} />
                 ) : (
-                  <Text style={{ fontWeight: 'bold', color: white, fontSize: 16 }}>Enregistrer</Text>
+                  <Text
+                    style={{ fontWeight: 'bold', color: white, fontSize: 16 }}
+                  >
+                    Enregistrer
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -894,20 +1052,32 @@ const Profil = ({ navigation }) => {
         animationType="slide"
         onRequestClose={() => setEditPrenomModal(false)}
       >
-        <View style={{ 
-          flex: 1, 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)' 
-        }}>
-          <View style={{ 
-            backgroundColor: white,
-            borderRadius: 20,
-            padding: 25,
-            width: '85%',
-            alignItems: 'center'
-          }}>
-            <Text style={{ fontSize: 22, marginBottom: 20, color: dark, fontWeight: 'bold', textAlign: 'center' }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: white,
+              borderRadius: 20,
+              padding: 25,
+              width: '85%',
+              alignItems: 'center',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 22,
+                marginBottom: 20,
+                color: dark,
+                fontWeight: 'bold',
+                textAlign: 'center',
+              }}
+            >
               Modifier le prénom
             </Text>
             <TextInput
@@ -924,7 +1094,7 @@ const Profil = ({ navigation }) => {
                 paddingHorizontal: 15,
                 fontSize: 16,
                 marginBottom: 25,
-                backgroundColor: '#F8F9FA'
+                backgroundColor: '#F8F9FA',
               }}
             />
             <View style={{ flexDirection: 'row', width: '100%', gap: 15 }}>
@@ -940,10 +1110,14 @@ const Profil = ({ navigation }) => {
                   alignItems: 'center',
                   backgroundColor: '#f0f0f0',
                   borderWidth: 1,
-                  borderColor: '#ddd'
+                  borderColor: '#ddd',
                 }}
               >
-                <Text style={{ fontWeight: 'bold', color: '#666', fontSize: 16 }}>Annuler</Text>
+                <Text
+                  style={{ fontWeight: 'bold', color: '#666', fontSize: 16 }}
+                >
+                  Annuler
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={updateUserProfile}
@@ -955,13 +1129,17 @@ const Profil = ({ navigation }) => {
                   alignItems: 'center',
                   backgroundColor: brand,
                   borderWidth: 1,
-                  borderColor: brand
+                  borderColor: brand,
                 }}
               >
                 {updating ? (
                   <ActivityIndicator size="small" color={white} />
                 ) : (
-                  <Text style={{ fontWeight: 'bold', color: white, fontSize: 16 }}>Enregistrer</Text>
+                  <Text
+                    style={{ fontWeight: 'bold', color: white, fontSize: 16 }}
+                  >
+                    Enregistrer
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>

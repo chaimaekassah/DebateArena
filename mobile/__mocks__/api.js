@@ -1,5 +1,5 @@
-const api = {
-  post: jest.fn(() => Promise.resolve({ data: {} })),
+export default {
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
 };
-
-export default api;

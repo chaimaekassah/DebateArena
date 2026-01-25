@@ -9,7 +9,7 @@ on:
     paths: ['backend/**']
 
 jobs:
-  build:
+  test-backend:
     runs-on: ubuntu-latest
 
     env:

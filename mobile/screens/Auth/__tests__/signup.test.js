@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import SignUp from '../signup';
 import api from '../../../services/api';
+import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const mockNavigate = jest.fn();
@@ -10,15 +11,30 @@ const navigation = {
   navigate: mockNavigate,
 };
 
-jest.mock('../../../services/api');
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  multiSet: jest.fn(),
+}));
+
+jest.mock('../../../services/api', () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+  interceptors: {
+    request: { use: jest.fn() },
+    response: { use: jest.fn() },
+  },
+}));
+
+jest.spyOn(Alert, 'alert');
 
 describe('SignUp Screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('affiche une erreur si les mots de passe ne correspondent pas', async () => {
-    const { getByText, getByPlaceholderText, getByTestId } = render(
+  it('affiche une alerte si les mots de passe ne correspondent pas', async () => {
+    const { getByPlaceholderText, getByText, getByTestId } = render(
       <SignUp navigation={navigation} />,
     );
 
@@ -31,19 +47,21 @@ describe('SignUp Screen', () => {
     fireEvent.changeText(getByTestId('password-input'), '123456');
     fireEvent.changeText(getByTestId('confirm-password-input'), '000000');
 
-    fireEvent.press(getByText('INSCRIPTION'));
+    fireEvent.press(getByText("S'INSCRIRE"));
 
-    // ✅ on attend UNIQUEMENT l’erreur
     await waitFor(() => {
-      expect(getByText('Les mots de passe ne correspondent pas')).toBeTruthy();
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Mots de passe différents',
+        'Les mots de passe ne correspondent pas',
+      );
     });
 
-    // ✅ et on vérifie qu'il n'y a PAS de navigation
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(navigation.navigate).not.toHaveBeenCalled();
   });
 
   it('inscription réussie → sauvegarde et navigation', async () => {
     api.post.mockResolvedValueOnce({
+      status: 200,
       data: {
         id: 1,
         nom: 'Test',
@@ -51,7 +69,7 @@ describe('SignUp Screen', () => {
         email: 'test@test.com',
         score: 0,
         badgeNom: 'Débutant',
-        badgeCategorie: 'Bronze',
+        imageUrl: 'uploads/avatars/default.png',
       },
     });
 
@@ -68,12 +86,15 @@ describe('SignUp Screen', () => {
     fireEvent.changeText(getByTestId('password-input'), '123456');
     fireEvent.changeText(getByTestId('confirm-password-input'), '123456');
 
-    fireEvent.press(getByText('INSCRIPTION'));
+    fireEvent.press(getByText("S'INSCRIRE"));
 
     await waitFor(() => {
       expect(api.post).toHaveBeenCalled();
-      expect(AsyncStorage.setItem).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('Login');
+      expect(AsyncStorage.multiSet).toHaveBeenCalled();
+      expect(Alert.alert).toHaveBeenCalled();
+      expect(navigation.navigate).toHaveBeenCalledWith('Login', {
+        preFilledEmail: 'test@test.com',
+      });
     });
   });
 });

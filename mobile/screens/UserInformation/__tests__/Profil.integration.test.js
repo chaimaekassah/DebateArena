@@ -1,89 +1,84 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import Profil from '../Profil';
-import * as ImagePicker from 'expo-image-picker';
+import api from '../../../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/* ===== MOCKS ===== */
-
-jest.mock('expo-image-picker', () => ({
-  requestMediaLibraryPermissionsAsync: jest.fn(() =>
-    Promise.resolve({ granted: true }),
-  ),
-  launchImageLibraryAsync: jest.fn(() =>
-    Promise.resolve({
-      canceled: false,
-      assets: [{ uri: 'test-image-uri' }],
-    }),
-  ),
-  MediaTypeOptions: {
-    Images: 'Images',
-  },
-}));
-
-jest.mock('@expo/vector-icons', () => ({
-  Ionicons: 'Ionicons',
-}));
+jest.mock('../../../services/api');
 
 jest.mock('../../../components/styles', () => {
   const React = require('react');
-  const { View, Text, Image } = require('react-native');
+  const { View, Text } = require('react-native');
+
+  const Mock = ({ children }) => <View>{children}</View>;
 
   return {
-    BackgroundContainer: ({ children }) => <View>{children}</View>,
-    InnerContainer: ({ children }) => <View>{children}</View>,
-    ProfileImage: (props) => <Image {...props} />,
-    Label: ({ children }) => <Text>{children}</Text>,
-    WhiteContainer: ({ children }) => <View>{children}</View>,
+    BackgroundContainer: Mock,
+    InnerContainer: Mock,
+    Shadow: Mock,
+    ProgressBar: Mock,
+    ProgressFill: Mock,
+    SectionTitle: ({ children }) => <Text>{children}</Text>,
+    FieldLabel: ({ children }) => <Text>{children}</Text>,
+    StatLabel: ({ children }) => <Text>{children}</Text>,
     Colors: {
-      blue: '#4A90E2',
+      white: '#fff',
+      yellow: '#ff0',
+      brand: '#000',
       dark: '#000',
+      lightPink: '#ccc',
+      green: '#0f0',
+      pink: '#f0c',
     },
   };
 });
 
-jest.mock('../../../components/common/KeyboardAvoidingWrapper', () => {
-  return ({ children }) => children;
-});
+describe('Profil – tests d’intégration', () => {
+  const navigation = { goBack: jest.fn(), replace: jest.fn() };
 
-/**
- * EditableRow mock interactif
- */
-jest.mock('../../../components/userInformation/EditableRow', () => {
-  const React = require('react');
-  const { TextInput, TouchableOpacity, Text } = require('react-native');
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    await AsyncStorage.setItem('userToken', 'fake-token');
+  });
 
-  return ({ label, value, onChange, onPress, isEditing }) => (
-    <>
-      <TouchableOpacity onPress={onPress}>
-        <Text>{label}</Text>
-      </TouchableOpacity>
+  it('charge et affiche les données utilisateur', async () => {
+    api.get.mockResolvedValueOnce({
+      data: {
+        id: 1,
+        nom: 'Doe',
+        prenom: 'John',
+        email: 'john@doe.com',
+        role: 'UTILISATEUR',
+      },
+    });
 
-      {isEditing && (
-        <TextInput
-          testID={`${label}-input`}
-          value={value}
-          onChangeText={onChange}
-        />
-      )}
-    </>
-  );
-});
+    api.get.mockResolvedValueOnce({
+      data: {
+        totalDebats: 10,
+        debatsGagnes: 7,
+        tauxReussite: 70,
+        niveau: 'INTERMEDIAIRE',
+        score: 150,
+      },
+    });
 
-/* ===== TEST ===== */
+    const { findByText, getAllByText } = render(
+      <Profil navigation={navigation} />,
+    );
 
-describe('Profil – Test d’intégration', () => {
-  it("permet de modifier le nom de l'utilisateur", async () => {
-    const { getByText, getByTestId } = render(<Profil />);
+    expect(await findByText('Mon Profil')).toBeTruthy();
+    expect(await findByText(/John\s*Doe/)).toBeTruthy();
+    expect(getAllByText('john@doe.com')).toBeTruthy();
+    expect(await findByText('150 points')).toBeTruthy();
+  });
 
-    // Clique sur "Nom" pour activer l'édition
-    fireEvent.press(getByText('Nom'));
+  it('redirige vers Login si token absent', async () => {
+    await AsyncStorage.clear();
 
-    const input = getByTestId('Nom-input');
-
-    fireEvent.changeText(input, 'Nouveau Nom');
+    render(<Profil navigation={navigation} />);
 
     await waitFor(() => {
-      expect(input.props.value).toBe('Nouveau Nom');
+      expect(navigation.replace).toHaveBeenCalledWith('Login');
     });
   });
 });

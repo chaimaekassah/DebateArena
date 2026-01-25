@@ -1,27 +1,88 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import Chat from '../Chat';
+import api, { verifyToken } from '../../../services/api';
 
-jest.useFakeTimers();
+/* ---------------- Mocks ---------------- */
 
-// test for Chat screen
+jest.mock('../../../services/api', () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+  delete: jest.fn(),
+  verifyToken: jest.fn(),
+}));
 
-describe('Chat Screen', () => {
-  it("permet d'envoyer un message et affiche la réponse IA", async () => {
-    const { getByPlaceholderText, getByText, getByTestId } = render(<Chat />);
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  clear: jest.fn(),
+}));
 
-    const input = getByPlaceholderText('Tapez ici');
+const mockNavigation = {
+  navigate: jest.fn(),
+  goBack: jest.fn(),
+};
 
-    fireEvent.changeText(input, 'Bonjour');
-    fireEvent.press(getByTestId('send-button'));
+const mockRoute = {
+  params: {
+    debatId: 1,
+    sujet: { titre: 'Climat' },
+    type: 'ENTRAINEMENT',
+    choixUtilisateur: 'POUR',
+  },
+};
 
-    expect(getByText('Bonjour')).toBeTruthy();
+/* ---------------- Tests ---------------- */
 
-    // Avancer le timer de l’IA
-    jest.advanceTimersByTime(1200);
+describe('Chat – Tests unitaires', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    verifyToken.mockResolvedValue(true);
+    api.get.mockResolvedValue({ data: [] });
+  });
 
-    await waitFor(() => {
-      expect(getByText('🤖 Réponse simulée de l’IA.')).toBeTruthy();
+  /* ✅ 1. Rendu du loader initial */
+  it('affiche le loader au chargement du débat', () => {
+    const { getByText } = render(
+      <Chat navigation={mockNavigation} route={mockRoute} />,
+    );
+
+    expect(getByText('Chargement du débat...')).toBeTruthy();
+  });
+
+  /* ✅ 2. Affichage du titre du sujet */
+  it('affiche le titre du sujet du débat', async () => {
+    api.get.mockResolvedValueOnce({
+      data: {
+        sujet: { titre: 'Climat' },
+        status: 'EN_COURS',
+        choixUtilisateur: 'POUR',
+      },
     });
+
+    const { findByText } = render(
+      <Chat navigation={mockNavigation} route={mockRoute} />,
+    );
+
+    expect(await findByText('Climat')).toBeTruthy();
+  });
+
+  /* ✅ 3. Champ de saisie présent */
+  it('affiche le champ de saisie du message', async () => {
+    const { findByPlaceholderText } = render(
+      <Chat navigation={mockNavigation} route={mockRoute} />,
+    );
+
+    expect(
+      await findByPlaceholderText('Écrivez votre message...'),
+    ).toBeTruthy();
+  });
+
+  /* ✅ 4. Boutons Annuler / Terminer présents */
+  it('affiche les boutons d’action du débat', async () => {
+    const { findByText } = render(
+      <Chat navigation={mockNavigation} route={mockRoute} />,
+    );
+
+    expect(await findByText('Annuler')).toBeTruthy();
+    expect(await findByText('Terminer')).toBeTruthy();
   });
 });

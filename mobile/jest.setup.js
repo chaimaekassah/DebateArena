@@ -38,32 +38,12 @@ jest.mock('./components/common/KeyboardAvoidingWrapper', () => {
   return ({ children }) => <>{children}</>;
 });
 
-jest.mock('react-native-keyboard-aware-scroll-view', () => {
-  const { ScrollView } = require('react-native');
-  return {
-    KeyboardAwareScrollView: ScrollView,
-  };
-});
-
-jest.mock('react-native-keyboard-aware-scroll-view', () => {
-  const { ScrollView } = require('react-native');
-  return {
-    KeyboardAwareScrollView: ScrollView,
-  };
-});
-
-jest.mock('react-native-keyboard-aware-scroll-view', () => {
-  const { ScrollView } = require('react-native');
-  return {
-    KeyboardAwareScrollView: ScrollView,
-  };
-});
-jest.mock('react-native-keyboard-aware-scroll-view', () => {
-  const { ScrollView } = require('react-native');
-  return {
-    KeyboardAwareScrollView: ScrollView,
-  };
-});
+jest.mock(
+  'react-native/Libraries/Components/Keyboard/KeyboardAvoidingView',
+  () => {
+    return ({ children }) => children;
+  },
+);
 
 //✅ Mock KeyboardAwareScrollView
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
@@ -113,6 +93,26 @@ jest.mock('@react-navigation/bottom-tabs', () => {
         Screen: ({ children }) => children,
       };
     },
+  };
+});
+
+jest.mock('expo-image-picker', () => ({
+  requestMediaLibraryPermissionsAsync: jest.fn(),
+  requestCameraPermissionsAsync: jest.fn(),
+  launchImageLibraryAsync: jest.fn(),
+  launchCameraAsync: jest.fn(),
+}));
+
+// Mock route params example
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useRoute: () => ({
+      params: {
+        debateType: 'ENTRAINEMENT',
+      },
+    }),
   };
 });
 
