@@ -44,9 +44,7 @@ jobs:
       - name: Run React Native tests
         working-directory: mobile
         run: yarn test --watchAll=false
-        continue-on-error: true
 
       - name: Type check (if using TypeScript)
         working-directory: mobile
         run: yarn tsc --noEmit
-        continue-on-error: true
