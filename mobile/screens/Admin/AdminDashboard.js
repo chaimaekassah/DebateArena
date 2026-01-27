@@ -181,9 +181,7 @@ const AdminDashboard = ({ navigation }) => {
             <Text style={{ fontSize: 32, fontWeight: 'bold', color: white, textAlign: 'center', marginBottom: 5 }}>
               {dashboardData?.totalUtilisateurs || 0}
             </Text>
-            <Text style={{ fontSize: 12, color: yellow, textAlign: 'center', marginTop: 5 }}>
-              +{dashboardData?.activite30j?.nouveauxUtilisateurs || 0} sur 30j
-            </Text>
+            
           </InfoBox>
 
           {/* Débats - Carte jaune */}
@@ -296,17 +294,6 @@ const AdminDashboard = ({ navigation }) => {
             borderTopColor: yellow,
             borderTopWidth: 3,
           }}>
-            <View style={{ marginBottom: 15 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 }}>
-                <Text style={{ fontSize: 16, color: dark }}>
-                  Nouveaux utilisateurs
-                </Text>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', color: blue }}>
-                  {dashboardData?.activite24h?.nouveauxUtilisateurs || 0}
-                </Text>
-              </View>
-              <View style={{ height: 1, backgroundColor: yellow, opacity: 0.3, marginVertical: 5 }} />
-            </View>
 
             <View style={{ marginBottom: 15 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 }}>
@@ -344,14 +331,6 @@ const AdminDashboard = ({ navigation }) => {
             borderBottomWidth: 3,
           }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 14, color: dark, opacity: 0.7, marginBottom: 5 }}>
-                  Utilisateurs
-                </Text>
-                <Text style={{ fontSize: 20, fontWeight: 'bold', color: blue }}>
-                  {dashboardData?.activite7j?.nouveauxUtilisateurs || 0}
-                </Text>
-              </View>
               <View style={{ alignItems: 'center' }}>
                 <Text style={{ fontSize: 14, color: dark, opacity: 0.7, marginBottom: 5 }}>
                   Débats
