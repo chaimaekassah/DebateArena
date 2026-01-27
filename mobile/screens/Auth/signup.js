@@ -54,7 +54,7 @@ const SignUp = ({navigation}) => {
         console.log("FormData créé");
 
         const response = await axios.post(
-          'http://192.168.11.181:8080/api/auth/signup',
+          'http://192.168.11.101:8080/api/auth/signup',
           formData,
           {
             timeout: 30000, // 30 secondes

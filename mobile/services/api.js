@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 
 // Création de l'instance axios avec configuration
 const api = axios.create({
-  baseURL: 'http://192.168.11.181:8080/api',
+  baseURL: 'http://192.168.11.101:8080/api',
   timeout: 10000,
   headers: {
     'Accept': 'application/json',
