@@ -1,19 +1,15 @@
-# Utiliser une image Python officielle comme base
+# Base Python
 FROM python:3.11-slim
 
-# Définir le répertoire de travail dans le conteneur
+# Répertoire de travail
 WORKDIR /app
 
-# Copier le fichier requirements.txt
+# Copier requirements et installer
 COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Installer les dépendances Python
-RUN pip install --no-cache-dir -r requirements.txt 
-#no-cache-dir :Option qui dit à pip de ne pas sauvegarder les fichiers de cache téléchargés
-
-# Copier le script app.py dans le conteneur
+# Copier tout le code
 COPY . .
 
-# Lancer l'API
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5005"]
-
+# Lancer l'API avec port dynamique
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-5005}"]
