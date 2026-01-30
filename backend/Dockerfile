@@ -15,8 +15,6 @@ WORKDIR /app
 # Copier le fichier .jar depuis l’étape de build
 COPY --from=build /workspace/target/*.jar app.jar
 
-# Exposer le port Spring Boot
 EXPOSE 8080
 
-# Lancer l’application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
