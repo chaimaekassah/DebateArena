@@ -122,7 +122,7 @@ class ChatbotClientTest {
         )).thenReturn(ResponseEntity.ok(mockResponse));
 
         // ACT
-        ChatbotResponse result = chatbotClient.sendMessage(message, sessionId);
+        ChatbotResponse result = chatbotClient.sendMessage(message, sessionId, anyString());
 
         // ASSERT
         assertThat(result.getResponse()).isEqualTo("Bonjour humain !");
@@ -144,7 +144,7 @@ class ChatbotClientTest {
 
         // ACT & ASSERT
         ChatbotServiceException ex = assertThrows(ChatbotServiceException.class, () ->
-                chatbotClient.sendMessage("Hello", "session")
+                chatbotClient.sendMessage("Hello", "session", "train")
         );
 
         assertThat(ex.getMessage()).contains("Erreur lors de l'appel au chatbot");
@@ -158,7 +158,7 @@ class ChatbotClientTest {
 
         // ACT & ASSERT
         ChatbotServiceException ex = assertThrows(ChatbotServiceException.class, () ->
-                chatbotClient.sendMessage("Hello", "session")
+                chatbotClient.sendMessage("Hello", "session", "train")
         );
 
         // CORRECTION ICI : on utilise .contains() au lieu de .isEqualTo()

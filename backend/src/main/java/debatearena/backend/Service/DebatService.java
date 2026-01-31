@@ -19,6 +19,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -102,77 +104,127 @@ public class DebatService {
     // ========== ENVOYER MESSAGE ==========
 
     public MessageResponse envoyerMessage(Long debatId, MessageRequest request) {
-        // Validation
-        if (request.getContenu() == null || request.getContenu().trim().isEmpty()) {
-            throw new BadRequestException("Message vide");
+        try {
+            // Validation
+            if (request.getContenu() == null || request.getContenu().trim().isEmpty()) {
+                throw new BadRequestException("Message vide");
+            }
+
+            Utilisateur utilisateur = utilisateurService.getCurrentUser();
+
+            // Récupérer le débat
+            Debat debat = debatRepository.findByIdAndUtilisateur(debatId, utilisateur)
+                    .orElseThrow(() -> new NotFoundException("Débat non trouvé"));
+
+            if (debat.getDuree() != null) {
+                throw new BadRequestException("Débat déjà terminé");
+            }
+
+            // 1. Sauvegarder message utilisateur
+            Message messageUtilisateur = new Message(request.getContenu(), debat, utilisateur);
+            messageRepository.save(messageUtilisateur);
+
+            // 2. Appeler le chatbot
+            String reponseChatbot;
+            try {
+                reponseChatbot = appelerChatbotApi(request.getContenu(), debat);
+            } catch (Exception e) {
+                // Réponse de secours si le chatbot échoue
+                reponseChatbot = "Je ne peux pas répondre pour le moment. Veuillez continuer votre argumentation.";
+            }
+
+            // 3. Sauvegarder réponse chatbot
+            Utilisateur chatbot = utilisateurService.getChatbotUser();
+            Message messageChatbot = new Message(reponseChatbot, debat, chatbot);
+            Message savedMessage = messageRepository.save(messageChatbot);
+
+            // 4. Forcer le flush et refresh pour s'assurer que l'ID est généré
+            messageRepository.flush();
+
+            // 5. Convertir et retourner
+            return convertirMessageEnResponse(savedMessage);
+
+        } catch (Exception e) {
+            // Log l'erreur complète
+            System.err.println("ERREUR envoyerMessage: " + e.getMessage());
+            e.printStackTrace();
+            throw new BadRequestException("Erreur lors de l'envoi du message: " + e.getMessage());
         }
-
-        Utilisateur utilisateur = utilisateurService.getCurrentUser();
-
-        // Récupérer le débat
-        Debat debat = debatRepository.findByIdAndUtilisateur(debatId, utilisateur)
-                .orElseThrow(() -> new NotFoundException("Débat non trouvé"));
-
-        if (debat.getDuree() != null) {
-            throw new BadRequestException("Débat déjà terminé");
-        }
-
-        // Sauvegarder message utilisateur
-        Message messageUtilisateur = new Message(request.getContenu(), debat, utilisateur);
-        messageRepository.save(messageUtilisateur);
-
-        // Appeler le chatbot
-        String reponseChatbot = appelerChatbotApi(
-                request.getContenu(),
-                debat
-        );
-
-        // Sauvegarder réponse chatbot
-        Utilisateur chatbot = utilisateurService.getChatbotUser();
-        Message messageChatbot = new Message(reponseChatbot, debat, chatbot);
-        messageRepository.save(messageChatbot);
-
-        return convertirMessageEnResponse(messageChatbot);
     }
 
     // ========== NOUVELLE MÉTHODE appelerChatbotApi ==========
 
     private String appelerChatbotApi(String messageUtilisateur, Debat debat) {
-        // Vérifier si le chatbot est disponible
-        if (!chatbotClient.isHealthy()) {
-            // Réponse par défaut si le chatbot est down
-            return "Je suis actuellement indisponible. Veuillez réessayer plus tard.";
+        try {
+            // Vérifier si le chatbot est disponible
+            if (!chatbotClient.isHealthy()) {
+                return "Je suis actuellement indisponible. Veuillez réessayer plus tard.";
+            }
+
+            // Déterminer le mode selon le type de débat
+            String mode = testRepository.existsByDebat(debat) ? "score" : "train";
+
+            // Construire le contexte approprié
+            String messageAvecContexte = construireMessageAvecContexte(
+                    messageUtilisateur,
+                    debat,
+                    mode
+            );
+
+            // Récupérer la session
+            String sessionId = debatSessions.get(debat.getId());
+
+            // Appeler le chatbot avec le bon mode
+            ChatbotResponse chatbotResponse = chatbotClient.sendMessage(
+                    messageAvecContexte,
+                    sessionId,
+                    mode
+            );
+
+            // Vérifier si la réponse n'est pas null
+            if (chatbotResponse == null) {
+                throw new ChatbotServiceException("Réponse null du chatbot");
+            }
+
+            // Stocker la nouvelle session ID
+            if (chatbotResponse.getSession_id() != null) {
+                debatSessions.put(debat.getId(), chatbotResponse.getSession_id());
+            }
+
+            // Vérifier le contenu de la réponse
+            String response = chatbotResponse.getResponse();
+            if (response == null || response.trim().isEmpty()) {
+                return "Je n'ai pas pu générer de réponse. Veuillez reformuler votre message.";
+            }
+
+            return response;
+
+        } catch (ChatbotServiceException e) {
+            // Gestion spécifique des erreurs du chatbot
+            return "Erreur technique avec le chatbot : " + e.getMessage();
+        } catch (Exception e) {
+            // Gestion des autres exceptions
+            return "Une erreur inattendue est survenue.";
         }
-
-        // Construire le message avec contexte
-        String messageAvecContexte = construireMessageAvecContexte(messageUtilisateur, debat);
-
-        // Récupérer la session pour ce débat (ou null pour nouvelle session)
-        String sessionId = debatSessions.get(debat.getId());
-
-        // Appeler le chatbot
-        ChatbotResponse chatbotResponse = chatbotClient.sendMessage(messageAvecContexte, sessionId);
-
-        // Stocker la nouvelle session ID
-        if (chatbotResponse.getSession_id() != null) {
-            debatSessions.put(debat.getId(), chatbotResponse.getSession_id());
-        }
-
-        return chatbotResponse.getResponse();
     }
 
-    private String construireMessageAvecContexte(String messageUtilisateur, Debat debat) {
+    private String construireMessageAvecContexte(String messageUtilisateur, Debat debat, String mode) {
         StringBuilder contexte = new StringBuilder();
-        contexte.append("CONTEXTE DU DÉBAT:\n");
+        contexte.append("Contexte du débat:\n");
         contexte.append("- Sujet: ").append(debat.getSujet().getTitre()).append("\n");
-        contexte.append("- Utilisateur est: ").append(debat.getChoixUtilisateur()).append("\n");
-        contexte.append("- Chatbot doit être: ");
+        contexte.append("- Position utilisateur: ").append(debat.getChoixUtilisateur()).append("\n");
+        contexte.append("- Ma position: ");
         contexte.append(debat.getChoixUtilisateur().equals("POUR") ? "CONTRE" : "POUR").append("\n");
-        contexte.append("- Type: ");
-        contexte.append(testRepository.existsByDebat(debat) ? "TEST" : "ENTRAINEMENT").append("\n");
-        contexte.append("- Difficulté: ").append(debat.getSujet().getDifficulte().name()).append("\n\n");
-        contexte.append("MESSAGE DE L'UTILISATEUR:\n");
-        contexte.append(messageUtilisateur);
+        contexte.append("- Mode: ").append(mode).append("\n");
+
+        if ("score".equals(mode)) {
+            contexte.append("\n⚠️ Mode ÉVALUATION activé. Je vais analyser tes arguments.\n");
+            contexte.append("Pour terminer l'évaluation, envoie 'fin du débat'.\n\n");
+        } else {
+            contexte.append("\n🎯 Mode ENTRAÎNEMENT. Débattons !\n\n");
+        }
+
+        contexte.append("Message à analyser: ").append(messageUtilisateur);
 
         return contexte.toString();
     }
@@ -214,8 +266,8 @@ public class DebatService {
 
     // ========== ÉVALUER TEST ==========
 
+    // Dans DebatService.java
     public MessageResponse evaluerTest(Long debatId) {
-        // Pour l'instant, retourne un message indiquant que c'est en développement
         Utilisateur utilisateur = utilisateurService.getCurrentUser();
 
         Debat debat = debatRepository.findByIdAndUtilisateur(debatId, utilisateur)
@@ -225,15 +277,56 @@ public class DebatService {
             throw new BadRequestException("Ce débat n'est pas un TEST");
         }
 
-        // Message temporaire
-        Utilisateur chatbot = utilisateurService.getChatbotUser();
-        String messageEvaluation = "L'évaluation automatique des tests est en cours de développement.\n" +
-                "Pour l'instant, votre performance sera évaluée manuellement par nos équipes.";
+        // Envoyer le message spécial pour obtenir le score
+        String sessionId = debatSessions.get(debatId);
+        String messageEvaluation = "fin du débat";
 
-        Message message = new Message(messageEvaluation, debat, chatbot);
-        messageRepository.save(message);
+        try {
+            ChatbotResponse response = chatbotClient.sendMessage(messageEvaluation, sessionId, "score");
 
-        return convertirMessageEnResponse(message);
+            // Sauvegarder la réponse du chatbot
+            Utilisateur chatbot = utilisateurService.getChatbotUser();
+            Message message = new Message(response.getResponse(), debat, chatbot);
+            messageRepository.save(message);
+
+            // Extraire et sauvegarder la note si possible
+            extraireEtSauvegarderNote(response.getResponse(), debat);
+
+            return convertirMessageEnResponse(message);
+
+        } catch (Exception e) {
+            // Fallback en cas d'erreur
+            Utilisateur chatbot = utilisateurService.getChatbotUser();
+            Message message = new Message(
+                    "L'évaluation automatique a échoué. Notre équipe analysera manuellement votre débat.",
+                    debat,
+                    chatbot
+            );
+            messageRepository.save(message);
+            return convertirMessageEnResponse(message);
+        }
+    }
+
+    private void extraireEtSauvegarderNote(String reponseChatbot, Debat debat) {
+        try {
+            // Extraire le score de la réponse (ex: "Score final du débat : 85/100")
+            Pattern pattern = Pattern.compile("Score final du débat : (\\d+\\.?\\d*)/100");
+            Matcher matcher = pattern.matcher(reponseChatbot);
+
+            if (matcher.find()) {
+                Double score = Double.parseDouble(matcher.group(1));
+
+                // Mettre à jour le test
+                Optional<Test> testOpt = testRepository.findByDebat(debat);
+                if (testOpt.isPresent()) {
+                    Test test = testOpt.get();
+                    test.setNote(score.intValue()); // ou garder Double si vous voulez
+                    testRepository.save(test);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Impossible d'extraire la note: " + e.getMessage());
+        }
     }
 
     // ========== RÉCUPÉRER MESSAGES ==========
@@ -394,7 +487,7 @@ public class DebatService {
                 return "❌ Chatbot indisponible";
             }
 
-            ChatbotResponse response = chatbotClient.sendMessage(message, null);
+            ChatbotResponse response = chatbotClient.sendMessage(message, null, "train");
 
             return "✅ Test réussi!\nSession: " + response.getSession_id() + "\n" +
                     "Réponse: " + response.getResponse();

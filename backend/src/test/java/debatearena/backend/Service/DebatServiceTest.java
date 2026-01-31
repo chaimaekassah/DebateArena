@@ -158,7 +158,7 @@ class DebatServiceTest {
         when(utilisateurService.getCurrentUser()).thenReturn(utilisateur);
         when(debatRepository.findByIdAndUtilisateur(100L, utilisateur)).thenReturn(Optional.of(debatEnCours));
         when(chatbotClient.isHealthy()).thenReturn(true);
-        when(chatbotClient.sendMessage(anyString(), any())).thenReturn(botResponse);
+        when(chatbotClient.sendMessage(anyString(), any(), anyString())).thenReturn(botResponse);
         when(utilisateurService.getChatbotUser()).thenReturn(chatbotUser);
 
         // ACT
@@ -188,7 +188,7 @@ class DebatServiceTest {
 
         // ASSERT
         assertThat(response.getContenu()).contains("Je suis actuellement indisponible");
-        verify(chatbotClient, never()).sendMessage(any(), any());
+        verify(chatbotClient, never()).sendMessage(any(), any(), anyString());
     }
 
     @Test
