@@ -164,19 +164,16 @@ public class DebatService {
             // Déterminer le mode selon le type de débat
             String mode = testRepository.existsByDebat(debat) ? "score" : "train";
 
-            // Construire le contexte approprié
-            String messageAvecContexte = construireMessageAvecContexte(
-                    messageUtilisateur,
-                    debat,
-                    mode
-            );
+            // NE PAS construire de contexte supplémentaire !
+            // Envoyez seulement le message de l'utilisateur
+            // Le contexte est déjà géré par le ChatbotService Python
 
             // Récupérer la session
             String sessionId = debatSessions.get(debat.getId());
 
             // Appeler le chatbot avec le bon mode
             ChatbotResponse chatbotResponse = chatbotClient.sendMessage(
-                    messageAvecContexte,
+                    messageUtilisateur,  // ← Envoyez seulement le message !
                     sessionId,
                     mode
             );
@@ -200,10 +197,8 @@ public class DebatService {
             return response;
 
         } catch (ChatbotServiceException e) {
-            // Gestion spécifique des erreurs du chatbot
             return "Erreur technique avec le chatbot : " + e.getMessage();
         } catch (Exception e) {
-            // Gestion des autres exceptions
             return "Une erreur inattendue est survenue.";
         }
     }
